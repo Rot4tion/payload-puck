@@ -2,13 +2,13 @@
 
 import { useState, useCallback, useEffect, useRef, memo } from 'react'
 import {
-  IconHistory,
-  IconLoader2,
-  IconCheck,
-  IconRotate,
-  IconX,
-  IconChevronDown,
-} from '@tabler/icons-react'
+  History,
+  Loader2,
+  Check,
+  RotateCcw,
+  X,
+  ChevronDown,
+} from 'lucide-react'
 
 /**
  * Version entry from Payload's versions system
@@ -196,9 +196,9 @@ export const VersionHistory = memo(function VersionHistory({
         disabled={disabled}
         className={`${secondaryBtn} disabled:opacity-50 disabled:cursor-not-allowed`}
       >
-        <IconHistory className="h-4 w-4 mr-1 flex-shrink-0" />
+        <History className="h-4 w-4 mr-1 flex-shrink-0" />
         History
-        <IconChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
+        <ChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
       </button>
 
       {/* Dropdown panel */}
@@ -216,7 +216,7 @@ export const VersionHistory = memo(function VersionHistory({
               onClick={() => setIsOpen(false)}
               className="text-gray-400 hover:text-gray-600 transition-colors p-1"
             >
-              <IconX className="h-4 w-4" />
+              <X className="h-4 w-4" />
             </button>
           </div>
 
@@ -226,7 +226,7 @@ export const VersionHistory = memo(function VersionHistory({
               <div
                 className="flex items-center justify-center p-8"
               >
-                <IconLoader2 className="h-5 w-5 animate-spin text-gray-400" />
+                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
               </div>
             ) : error ? (
               <div
@@ -295,9 +295,9 @@ export const VersionHistory = memo(function VersionHistory({
                         className="text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors disabled:opacity-50 flex items-center gap-1 px-2 py-1 flex-shrink-0"
                       >
                         {isRestoring ? (
-                          <IconLoader2 className="h-3 w-3 animate-spin" />
+                          <Loader2 className="h-3 w-3 animate-spin" />
                         ) : (
-                          <IconRotate className="h-3 w-3" />
+                          <RotateCcw className="h-3 w-3" />
                         )}
                         Restore
                       </button>
@@ -306,7 +306,7 @@ export const VersionHistory = memo(function VersionHistory({
                     {/* Current indicator */}
                     {index === 0 && (
                       <span className="text-gray-400 flex-shrink-0">
-                        <IconCheck className="h-4 w-4" />
+                        <Check className="h-4 w-4" />
                       </span>
                     )}
                   </div>

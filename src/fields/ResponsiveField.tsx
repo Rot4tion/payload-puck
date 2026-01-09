@@ -4,20 +4,19 @@
  * ResponsiveField - Generic wrapper for breakpoint-specific field overrides
  *
  * This component wraps any existing field to provide responsive overrides
- * at different breakpoints (base, sm, md, lg, xl). It uses sparse storage,
+ * at different breakpoints (xs, sm, md, lg, xl). It uses sparse storage,
  * only storing values for breakpoints that have explicit overrides.
  */
 
 import React, { useState, useCallback, memo } from 'react'
 import type { CustomField } from '@measured/puck'
 import {
-  IconDeviceMobile,
-  IconDeviceTablet,
-  IconDeviceLaptop,
-  IconDeviceDesktop,
-  IconDevices,
-  IconX,
-} from '@tabler/icons-react'
+  Smartphone,
+  Tablet,
+  Laptop,
+  Monitor,
+  X,
+} from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Label } from '../components/ui/label'
 import { cn } from '../lib/utils'
@@ -39,7 +38,7 @@ interface ResponsiveFieldProps<T> {
     onChange: (v: T | null) => void
     readOnly?: boolean
   }) => React.ReactNode
-  /** Default value for the base breakpoint */
+  /** Default value for the xs breakpoint */
   defaultValue?: T
 }
 
@@ -48,11 +47,11 @@ interface ResponsiveFieldProps<T> {
 // =============================================================================
 
 const BREAKPOINT_ICONS: Record<Breakpoint, React.ComponentType<{ className?: string }>> = {
-  base: IconDevices,
-  sm: IconDeviceMobile,
-  md: IconDeviceTablet,
-  lg: IconDeviceLaptop,
-  xl: IconDeviceDesktop,
+  xs: Smartphone,
+  sm: Smartphone,
+  md: Tablet,
+  lg: Laptop,
+  xl: Monitor,
 }
 
 // =============================================================================
@@ -116,16 +115,16 @@ function ResponsiveFieldInner<T>({
   renderInnerField,
   defaultValue,
 }: ResponsiveFieldProps<T>) {
-  const [activeBreakpoint, setActiveBreakpoint] = useState<Breakpoint>('base')
+  const [activeBreakpoint, setActiveBreakpoint] = useState<Breakpoint>('xs')
 
   // Get the current value for the active breakpoint
-  // Falls back through the cascade: active -> smaller breakpoints -> base -> default
+  // Falls back through the cascade: active -> smaller breakpoints -> xs -> default
   const getCurrentValue = useCallback((): T | null => {
     if (!value) return defaultValue ?? null
 
-    // For base, just return base value
-    if (activeBreakpoint === 'base') {
-      return value.base ?? defaultValue ?? null
+    // For xs, just return xs value
+    if (activeBreakpoint === 'xs') {
+      return value.xs ?? defaultValue ?? null
     }
 
     // For other breakpoints, return explicit override if set
@@ -135,7 +134,7 @@ function ResponsiveFieldInner<T>({
     }
 
     // Otherwise cascade down to find the nearest defined value
-    const breakpointOrder: Breakpoint[] = ['xl', 'lg', 'md', 'sm', 'base']
+    const breakpointOrder: Breakpoint[] = ['xl', 'lg', 'md', 'sm', 'xs']
     const activeIndex = breakpointOrder.indexOf(activeBreakpoint)
 
     for (let i = activeIndex + 1; i < breakpointOrder.length; i++) {
@@ -153,7 +152,7 @@ function ResponsiveFieldInner<T>({
   const hasOverride = useCallback(
     (breakpoint: Breakpoint): boolean => {
       if (!value) return false
-      if (breakpoint === 'base') return value.base !== undefined
+      if (breakpoint === 'xs') return value.xs !== undefined
       return value[breakpoint] !== undefined
     },
     [value]
@@ -162,12 +161,12 @@ function ResponsiveFieldInner<T>({
   // Handle value change for the active breakpoint
   const handleInnerChange = useCallback(
     (newValue: T | null) => {
-      if (activeBreakpoint === 'base') {
-        // Base is required, so we always set it
+      if (activeBreakpoint === 'xs') {
+        // XS is required, so we always set it
         if (newValue === null && defaultValue !== undefined) {
-          onChange({ ...value, base: defaultValue } as ResponsiveValue<T>)
+          onChange({ ...value, xs: defaultValue } as ResponsiveValue<T>)
         } else if (newValue !== null) {
-          onChange({ ...value, base: newValue } as ResponsiveValue<T>)
+          onChange({ ...value, xs: newValue } as ResponsiveValue<T>)
         }
       } else {
         // For other breakpoints, set the override
@@ -177,12 +176,12 @@ function ResponsiveFieldInner<T>({
           delete newResponsive[activeBreakpoint]
           onChange(newResponsive)
         } else {
-          // Ensure base exists
-          const base = value?.base ?? defaultValue
-          if (base === undefined) return
+          // Ensure xs exists
+          const xs = value?.xs ?? defaultValue
+          if (xs === undefined) return
           onChange({
             ...value,
-            base,
+            xs,
             [activeBreakpoint]: newValue,
           } as ResponsiveValue<T>)
         }
@@ -193,7 +192,7 @@ function ResponsiveFieldInner<T>({
 
   // Clear override for current breakpoint
   const handleClearOverride = useCallback(() => {
-    if (activeBreakpoint === 'base' || !value) return
+    if (activeBreakpoint === 'xs' || !value) return
 
     const newResponsive = { ...value }
     delete newResponsive[activeBreakpoint]
@@ -206,10 +205,10 @@ function ResponsiveFieldInner<T>({
   }, [onChange])
 
   const currentValue = getCurrentValue()
-  const isOverrideBreakpoint = activeBreakpoint !== 'base'
+  const isOverrideBreakpoint = activeBreakpoint !== 'xs'
   const currentHasOverride = hasOverride(activeBreakpoint)
 
-  // Count how many breakpoints have overrides (excluding base)
+  // Count how many breakpoints have overrides (excluding xs)
   const overrideCount = value
     ? (['sm', 'md', 'lg', 'xl'] as Breakpoint[]).filter((bp) => value[bp] !== undefined).length
     : 0
@@ -237,7 +236,7 @@ function ResponsiveFieldInner<T>({
             className="text-muted-foreground hover:text-destructive"
             title="Clear all values"
           >
-            <IconX className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>
@@ -261,13 +260,13 @@ function ResponsiveFieldInner<T>({
       {/* Active Breakpoint Info */}
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>
-          {activeBreakpoint === 'base' ? (
-            'Default for all screen sizes'
+          {activeBreakpoint === 'xs' ? (
+            'Extra small screens (0-639px)'
           ) : (
             <>
               {BREAKPOINTS.find((bp) => bp.key === activeBreakpoint)?.minWidth}px and up
               {!currentHasOverride && (
-                <span className="text-muted-foreground/60"> (inheriting from base)</span>
+                <span className="text-muted-foreground/60"> (inheriting from xs)</span>
               )}
             </>
           )}

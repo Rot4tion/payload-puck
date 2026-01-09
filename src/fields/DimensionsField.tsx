@@ -15,16 +15,16 @@
 import React, { useCallback, memo, useState } from 'react'
 import type { CustomField } from '@measured/puck'
 import {
-  IconX,
-  IconLayoutAlignLeft,
-  IconLayoutAlignCenter,
-  IconLayoutAlignRight,
-  IconArrowsHorizontal,
-  IconContainer,
-  IconAdjustments,
-  IconChevronDown,
-  IconChevronUp,
-} from '@tabler/icons-react'
+  X,
+  AlignStartHorizontal,
+  AlignCenterHorizontal,
+  AlignEndHorizontal,
+  MoveHorizontal,
+  Square,
+  SlidersHorizontal,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react'
 import type {
   DimensionsValue,
   DimensionConstraint,
@@ -363,15 +363,15 @@ function DimensionsFieldInner({
 
   // Mode labels
   const modeConfig = [
-    { mode: 'full' as DimensionsMode, icon: IconArrowsHorizontal, label: 'Full', title: 'Full width (100%)' },
-    { mode: 'contained' as DimensionsMode, icon: IconContainer, label: 'Contain', title: 'Contained (centered with max-width)' },
-    { mode: 'custom' as DimensionsMode, icon: IconAdjustments, label: 'Custom', title: 'Custom width settings' },
+    { mode: 'full' as DimensionsMode, icon: MoveHorizontal, label: 'Full', title: 'Full width (100%)' },
+    { mode: 'contained' as DimensionsMode, icon: Square, label: 'Contain', title: 'Contained (centered with max-width)' },
+    { mode: 'custom' as DimensionsMode, icon: SlidersHorizontal, label: 'Custom', title: 'Custom width settings' },
   ]
 
   const alignmentConfig = [
-    { alignment: 'left' as ContentAlignment, icon: IconLayoutAlignLeft, title: 'Align left' },
-    { alignment: 'center' as ContentAlignment, icon: IconLayoutAlignCenter, title: 'Align center' },
-    { alignment: 'right' as ContentAlignment, icon: IconLayoutAlignRight, title: 'Align right' },
+    { alignment: 'left' as ContentAlignment, icon: AlignStartHorizontal, title: 'Align left' },
+    { alignment: 'center' as ContentAlignment, icon: AlignCenterHorizontal, title: 'Align center' },
+    { alignment: 'right' as ContentAlignment, icon: AlignEndHorizontal, title: 'Align right' },
   ]
 
   const showWidthControls = currentValue.mode !== 'full'
@@ -393,7 +393,7 @@ function DimensionsFieldInner({
             className="text-muted-foreground hover:text-destructive"
             title="Reset to default"
           >
-            <IconX className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>
@@ -638,12 +638,12 @@ function DimensionsFieldInner({
         >
           {advancedMode ? (
             <>
-              <IconChevronUp className="h-3.5 w-3.5 mr-1" />
+              <ChevronUp className="h-3.5 w-3.5 mr-1" />
               Hide Advanced
             </>
           ) : (
             <>
-              <IconChevronDown className="h-3.5 w-3.5 mr-1" />
+              <ChevronDown className="h-3.5 w-3.5 mr-1" />
               Show Advanced
             </>
           )}

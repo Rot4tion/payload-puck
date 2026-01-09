@@ -3,18 +3,18 @@
 import { memo, useCallback, type ReactNode } from 'react'
 import { createUsePuck, type Data } from '@measured/puck'
 import {
-  IconArrowLeft,
-  IconDeviceFloppy,
-  IconExternalLink,
-  IconLoader2,
-  IconCheck,
-  IconHandClick,
-  IconPointer,
-  IconUpload,
-  IconX,
-  IconAlertTriangle,
-  IconEye,
-} from '@tabler/icons-react'
+  ArrowLeft,
+  Save,
+  ExternalLink,
+  Loader2,
+  Check,
+  MousePointerClick,
+  MousePointer,
+  Upload,
+  X,
+  AlertTriangle,
+  Eye,
+} from 'lucide-react'
 import { VersionHistory } from './VersionHistory'
 import { cn } from '../../lib/utils'
 
@@ -207,7 +207,7 @@ export const HeaderActions = memo(function HeaderActions({
         onClick={onBack}
         className={cn(btnBase, "px-3 py-1.5 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50")}
       >
-        <IconArrowLeft className="h-4 w-4 mr-1 flex-shrink-0" />
+        <ArrowLeft className="h-4 w-4 mr-1 flex-shrink-0" />
         Back
       </button>
 
@@ -255,7 +255,7 @@ export const HeaderActions = memo(function HeaderActions({
                 : "bg-gray-100 text-gray-500 border-gray-200"
             )}
           >
-            <IconPointer className="h-3.5 w-3.5" />
+            <MousePointer className="h-3.5 w-3.5" />
             Edit
           </button>
           <button
@@ -268,7 +268,7 @@ export const HeaderActions = memo(function HeaderActions({
                 : "bg-gray-100 text-gray-500 border-gray-200"
             )}
           >
-            <IconHandClick className="h-3.5 w-3.5" />
+            <MousePointerClick className="h-3.5 w-3.5" />
             Interactive
           </button>
         </div>
@@ -277,7 +277,7 @@ export const HeaderActions = memo(function HeaderActions({
       {/* Status indicators */}
       {lastSaved && !saveError && (
         <span className="text-xs text-gray-500 flex items-center gap-1 whitespace-nowrap">
-          <IconCheck className="h-3 w-3 flex-shrink-0" />
+          <Check className="h-3 w-3 flex-shrink-0" />
           Saved {lastSaved.toLocaleTimeString()}
         </span>
       )}
@@ -292,7 +292,7 @@ export const HeaderActions = memo(function HeaderActions({
           onClick={() => {}} // Modal is already open when saveError exists
           className="flex items-center gap-1.5 px-2.5 py-1.5 bg-red-50 border border-red-200 rounded-md text-red-700 text-xs font-medium"
         >
-          <IconAlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
+          <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
           Error
         </button>
       )}
@@ -310,7 +310,7 @@ export const HeaderActions = memo(function HeaderActions({
             {/* Modal Header */}
             <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-200 bg-red-50">
               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <IconAlertTriangle className="h-5 w-5 text-red-600" />
+                <AlertTriangle className="h-5 w-5 text-red-600" />
               </div>
               <div>
                 <h3 className="text-base font-semibold text-gray-900">Save Failed</h3>
@@ -348,7 +348,7 @@ export const HeaderActions = memo(function HeaderActions({
             "px-3 py-1.5 bg-blue-600 text-white border border-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           )}
         >
-          <IconEye className="h-4 w-4 mr-1 flex-shrink-0" />
+          <Eye className="h-4 w-4 mr-1 flex-shrink-0" />
           Preview
         </button>
       )}
@@ -360,7 +360,7 @@ export const HeaderActions = memo(function HeaderActions({
           onClick={onPreview}
           className={cn(btnBase, "px-3 py-1.5 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-50")}
         >
-          <IconExternalLink className="h-4 w-4 mr-1 flex-shrink-0" />
+          <ExternalLink className="h-4 w-4 mr-1 flex-shrink-0" />
           View
         </button>
       )}
@@ -386,9 +386,9 @@ export const HeaderActions = memo(function HeaderActions({
           )}
         >
           {isSaving ? (
-            <IconLoader2 className="h-4 w-4 mr-1 flex-shrink-0 animate-spin" />
+            <Loader2 className="h-4 w-4 mr-1 flex-shrink-0 animate-spin" />
           ) : (
-            <IconDeviceFloppy className="h-4 w-4 mr-1 flex-shrink-0" />
+            <Save className="h-4 w-4 mr-1 flex-shrink-0" />
           )}
           Save
         </button>
@@ -406,9 +406,9 @@ export const HeaderActions = memo(function HeaderActions({
           )}
         >
           {isSaving ? (
-            <IconLoader2 className="h-4 w-4 mr-1 flex-shrink-0 animate-spin" />
+            <Loader2 className="h-4 w-4 mr-1 flex-shrink-0 animate-spin" />
           ) : (
-            <IconUpload className="h-4 w-4 mr-1 flex-shrink-0" />
+            <Upload className="h-4 w-4 mr-1 flex-shrink-0" />
           )}
           Publish
         </button>

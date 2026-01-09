@@ -9,7 +9,7 @@
 
 import React, { useState, useEffect, useCallback, memo } from 'react'
 import type { CustomField } from '@measured/puck'
-import { IconPhoto, IconX, IconSearch, IconLoader2, IconUpload, IconAlertCircle, IconLink } from '@tabler/icons-react'
+import { Image, X, Search, Loader2, Upload, AlertCircle, Link } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
@@ -348,13 +348,13 @@ function MediaFieldInner({
                   className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                   aria-label="Remove image"
                 >
-                  <IconX className="h-3 w-3" />
+                  <X className="h-3 w-3" />
                 </button>
               )}
             </div>
           ) : (
             <div className="w-24 h-24 bg-muted rounded-md border border-dashed border-input flex items-center justify-center">
-              <IconPhoto className="h-8 w-8 text-muted-foreground" />
+              <Image className="h-8 w-8 text-muted-foreground" />
             </div>
           )}
 
@@ -385,7 +385,7 @@ function MediaFieldInner({
         {/* Current URL display */}
         {value?.url && (
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <IconLink className="h-3 w-3 flex-shrink-0" />
+            <Link className="h-3 w-3 flex-shrink-0" />
             <span className="truncate max-w-[280px]" title={value.url}>
               {value.url}
             </span>
@@ -443,7 +443,7 @@ function MediaFieldInner({
           {/* Search (browse tab only) */}
           {activeTab === 'browse' && (
             <div className="relative flex-shrink-0">
-              <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 type="text"
                 placeholder="Search by alt text..."
@@ -507,7 +507,7 @@ function MediaFieldInner({
                       >
                         {loading ? (
                           <>
-                            <IconLoader2 className="h-4 w-4 mr-2 animate-spin" />
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                             Loading...
                           </>
                         ) : (
@@ -547,7 +547,7 @@ function MediaFieldInner({
                     {/* Error */}
                     {uploadState.error && (
                       <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md text-destructive text-sm flex items-start gap-2">
-                        <IconAlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                        <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                         <span>{uploadState.error}</span>
                       </div>
                     )}
@@ -557,12 +557,12 @@ function MediaFieldInner({
                       <Button onClick={handleUpload} disabled={uploadState.uploading}>
                         {uploadState.uploading ? (
                           <>
-                            <IconLoader2 className="h-4 w-4 mr-2 animate-spin" />
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                             Uploading...
                           </>
                         ) : (
                           <>
-                            <IconUpload className="h-4 w-4 mr-2" />
+                            <Upload className="h-4 w-4 mr-2" />
                             Upload & Select
                           </>
                         )}
@@ -578,7 +578,7 @@ function MediaFieldInner({
                   </div>
                 ) : (
                   <div className="text-center">
-                    <IconPhoto className="h-16 w-16 text-muted mx-auto mb-4" />
+                    <Image className="h-16 w-16 text-muted mx-auto mb-4" />
                     <label className="cursor-pointer">
                       <Button asChild>
                         <span>Select Image</span>
@@ -604,7 +604,7 @@ function MediaFieldInner({
               <div className="flex flex-col items-center justify-center h-full min-h-[300px]">
                 <div className="w-full max-w-md space-y-4">
                   <div className="text-center mb-6">
-                    <IconLink className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                    <Link className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">
                       Enter an image URL from an external source
                     </p>
@@ -648,7 +648,7 @@ function MediaFieldInner({
                       />
                       {!urlState.previewLoaded && (
                         <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                          <IconLoader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                         </div>
                       )}
                     </div>
@@ -657,7 +657,7 @@ function MediaFieldInner({
                   {/* Error */}
                   {urlState.error && (
                     <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md text-destructive text-sm flex items-start gap-2">
-                      <IconAlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                       <span>{urlState.error}</span>
                     </div>
                   )}
@@ -668,7 +668,7 @@ function MediaFieldInner({
                       onClick={handleUrlSubmit}
                       disabled={!urlState.url || urlState.loading}
                     >
-                      <IconLink className="h-4 w-4 mr-2" />
+                      <Link className="h-4 w-4 mr-2" />
                       Use This URL
                     </Button>
                     {urlState.url && (

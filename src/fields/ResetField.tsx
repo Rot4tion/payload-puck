@@ -13,7 +13,7 @@ import React, { memo, useCallback } from 'react'
 import type { CustomField } from '@measured/puck'
 import { createUsePuck } from '@measured/puck'
 import type { Data } from '@measured/puck'
-import { IconRefresh } from '@tabler/icons-react'
+import { RefreshCw } from 'lucide-react'
 import { Button } from '../components/ui/button'
 
 // Create usePuck hook for accessing editor state
@@ -48,7 +48,7 @@ function ResetFieldInner({
         disabled={disabled}
         className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5"
       >
-        <IconRefresh className="h-3.5 w-3.5" />
+        <RefreshCw className="h-3.5 w-3.5" />
         {label}
       </Button>
     </div>

@@ -12,7 +12,7 @@
 
 import React, { useCallback, memo } from 'react'
 import type { CustomField } from '@measured/puck'
-import { IconX } from '@tabler/icons-react'
+import { X } from 'lucide-react'
 import type {
   BackgroundValue,
   BackgroundImageValue,
@@ -616,7 +616,7 @@ function BackgroundFieldInner({
             title="Clear background"
             className="flex items-center justify-center w-6 h-6 rounded border-none bg-transparent cursor-pointer text-muted-foreground hover:bg-accent hover:text-destructive"
           >
-            <IconX className="w-4 h-4" />
+            <X className="w-4 h-4" />
           </button>
         )}
       </div>

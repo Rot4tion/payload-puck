@@ -3,23 +3,15 @@ import { writeFileSync, readFileSync } from 'fs'
 import { glob } from 'glob'
 
 // External dependencies (not bundled)
+// Only externalize framework/singleton deps - everything else gets bundled
 const externalDeps = [
   'react',
+  'react-dom',
   'next',
   'next/navigation',
   'payload',
   '@payloadcms/ui',
   '@measured/puck',
-  '@measured/puck-plugin-heading-analyzer',
-  '@tiptap/core',
-  '@tiptap/react',
-  '@tiptap/starter-kit',
-  '@tiptap/extension-underline',
-  '@tiptap/extension-link',
-  '@tiptap/extension-text-align',
-  '@tiptap/extension-text-style',
-  '@tiptap/extension-color',
-  '@tiptap/extension-highlight',
   '@payload-config',
 ]
 

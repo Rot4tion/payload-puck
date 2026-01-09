@@ -14,7 +14,7 @@
 
 import React, { useCallback, memo, useState } from 'react'
 import type { CustomField } from '@measured/puck'
-import { IconX, IconChevronDown, IconChevronRight } from '@tabler/icons-react'
+import { X, ChevronDown, ChevronRight } from 'lucide-react'
 import type {
   AnimationValue,
   AdvancedEasingFunction,
@@ -102,9 +102,9 @@ function CollapsibleSection({ title, defaultOpen = false, children }: Collapsibl
       >
         <span className="text-xs font-medium text-muted-foreground">{title}</span>
         {isOpen ? (
-          <IconChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
         ) : (
-          <IconChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
         )}
       </button>
       {isOpen && <div className="p-3 space-y-3">{children}</div>}
@@ -285,7 +285,7 @@ function AnimationFieldInner({
             className="text-muted-foreground hover:text-destructive"
             title="Reset to default"
           >
-            <IconX className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>

@@ -11,7 +11,7 @@
 
 import React, { useCallback, memo } from 'react'
 import type { CustomField } from '@measured/puck'
-import { IconLink, IconLinkOff } from '@tabler/icons-react'
+import { Link, Unlink } from 'lucide-react'
 import type { PaddingValue } from './shared'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
@@ -159,9 +159,9 @@ function PaddingFieldInner({
             title={isLinked ? 'Click to unlink (set sides individually)' : 'Click to link (all sides same value)'}
           >
             {isLinked ? (
-              <IconLink className="h-4 w-4" />
+              <Link className="h-4 w-4" />
             ) : (
-              <IconLinkOff className="h-4 w-4" />
+              <Unlink className="h-4 w-4" />
             )}
           </Button>
         )}

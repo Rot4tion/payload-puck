@@ -11,7 +11,7 @@ import React, { useState, memo } from 'react'
 import type { CustomField } from '@measured/puck'
 import { TiptapField } from './TiptapField'
 import { TiptapModal } from './TiptapModal'
-import { IconArrowsMaximize } from '@tabler/icons-react'
+import { Maximize2 } from 'lucide-react'
 
 interface TiptapModalFieldProps {
   value: string
@@ -70,7 +70,7 @@ function TiptapModalFieldInner({ value, onChange, label }: TiptapModalFieldProps
           }}
           title="Open full-screen editor"
         >
-          <IconArrowsMaximize size={14} />
+          <Maximize2 size={14} />
           Expand
         </button>
       </div>

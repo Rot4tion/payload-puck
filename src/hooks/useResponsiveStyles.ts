@@ -30,7 +30,7 @@ export interface UseResponsiveStylesOptions {
  * Gets the current breakpoint based on window width
  */
 function getCurrentBreakpoint(): Breakpoint {
-  if (typeof window === 'undefined') return 'base'
+  if (typeof window === 'undefined') return 'xs'
 
   const width = window.innerWidth
 
@@ -42,7 +42,7 @@ function getCurrentBreakpoint(): Breakpoint {
     }
   }
 
-  return 'base'
+  return 'xs'
 }
 
 /**
@@ -52,9 +52,9 @@ function getValueForBreakpoint<T>(
   value: ResponsiveValue<T>,
   breakpoint: Breakpoint
 ): T {
-  // For base, return base value directly
-  if (breakpoint === 'base') {
-    return value.base
+  // For xs, return xs value directly
+  if (breakpoint === 'xs') {
+    return value.xs
   }
 
   // Check if this breakpoint has an explicit value
@@ -64,7 +64,7 @@ function getValueForBreakpoint<T>(
   }
 
   // Cascade down to find the nearest defined value
-  const breakpointOrder: Breakpoint[] = ['xl', 'lg', 'md', 'sm', 'base']
+  const breakpointOrder: Breakpoint[] = ['xl', 'lg', 'md', 'sm', 'xs']
   const currentIndex = breakpointOrder.indexOf(breakpoint)
 
   for (let i = currentIndex + 1; i < breakpointOrder.length; i++) {
@@ -75,8 +75,8 @@ function getValueForBreakpoint<T>(
     }
   }
 
-  // Fallback to base
-  return value.base
+  // Fallback to xs
+  return value.xs
 }
 
 // =============================================================================

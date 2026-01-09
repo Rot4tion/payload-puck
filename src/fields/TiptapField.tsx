@@ -27,37 +27,37 @@ import Superscript from '@tiptap/extension-superscript'
 import Subscript from '@tiptap/extension-subscript'
 import { Extension } from '@tiptap/core'
 import {
-  IconBold,
-  IconItalic,
-  IconUnderline,
-  IconStrikethrough,
-  IconHighlight,
-  IconLink,
-  IconList,
-  IconListNumbers,
-  IconAlignLeft,
-  IconAlignCenter,
-  IconAlignRight,
-  IconAlignJustified,
-  IconH1,
-  IconH2,
-  IconH3,
-  IconH4,
-  IconH5,
-  IconH6,
-  IconBlockquote,
-  IconCode,
-  IconClearFormatting,
-  IconPalette,
-  IconTextSize,
-  IconX,
-  IconChevronDown,
-  IconSuperscript,
-  IconSubscript,
-  IconSeparatorHorizontal,
-  IconCornerDownLeft,
-  IconLetterP,
-} from '@tabler/icons-react'
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  Highlighter,
+  Link,
+  List,
+  ListOrdered,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Heading1,
+  Heading2,
+  Heading3,
+  Heading4,
+  Heading5,
+  Heading6,
+  Quote,
+  Code,
+  RemoveFormatting,
+  Palette,
+  ALargeSmall,
+  X,
+  ChevronDown,
+  Superscript as SuperscriptIcon,
+  Subscript as SubscriptIcon,
+  Minus,
+  CornerDownLeft,
+  Pilcrow,
+} from 'lucide-react'
 import { cn } from '../lib/utils'
 import './tiptap-styles.css'
 import './richtext-output.css'
@@ -649,42 +649,42 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
               isActive={formattingState?.isBold}
               title="Bold"
             >
-              <IconBold className={ICON_SIZE} />
+              <Bold className={ICON_SIZE} />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleItalic().run()}
               isActive={formattingState?.isItalic}
               title="Italic"
             >
-              <IconItalic className={ICON_SIZE} />
+              <Italic className={ICON_SIZE} />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleUnderline().run()}
               isActive={formattingState?.isUnderline}
               title="Underline"
             >
-              <IconUnderline className={ICON_SIZE} />
+              <Underline className={ICON_SIZE} />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleStrike().run()}
               isActive={formattingState?.isStrike}
               title="Strikethrough"
             >
-              <IconStrikethrough className={ICON_SIZE} />
+              <Strikethrough className={ICON_SIZE} />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleSuperscript().run()}
               isActive={formattingState?.isSuperscript}
               title="Superscript"
             >
-              <IconSuperscript className={ICON_SIZE} />
+              <SuperscriptIcon className={ICON_SIZE} />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleSubscript().run()}
               isActive={formattingState?.isSubscript}
               title="Subscript"
             >
-              <IconSubscript className={ICON_SIZE} />
+              <SubscriptIcon className={ICON_SIZE} />
             </ToolbarButton>
 
             <div className={TOOLBAR_DIVIDER} />
@@ -693,14 +693,14 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
             <ToolbarDropdown
               trigger={
                 <span className="flex items-center gap-0.5">
-                  {formattingState?.isH1 ? <IconH1 className={ICON_SIZE} /> :
-                   formattingState?.isH2 ? <IconH2 className={ICON_SIZE} /> :
-                   formattingState?.isH3 ? <IconH3 className={ICON_SIZE} /> :
-                   formattingState?.isH4 ? <IconH4 className={ICON_SIZE} /> :
-                   formattingState?.isH5 ? <IconH5 className={ICON_SIZE} /> :
-                   formattingState?.isH6 ? <IconH6 className={ICON_SIZE} /> :
-                   <IconLetterP className={ICON_SIZE} />}
-                  <IconChevronDown className="w-3 h-3" />
+                  {formattingState?.isH1 ? <Heading1 className={ICON_SIZE} /> :
+                   formattingState?.isH2 ? <Heading2 className={ICON_SIZE} /> :
+                   formattingState?.isH3 ? <Heading3 className={ICON_SIZE} /> :
+                   formattingState?.isH4 ? <Heading4 className={ICON_SIZE} /> :
+                   formattingState?.isH5 ? <Heading5 className={ICON_SIZE} /> :
+                   formattingState?.isH6 ? <Heading6 className={ICON_SIZE} /> :
+                   <Pilcrow className={ICON_SIZE} />}
+                  <ChevronDown className="w-3 h-3" />
                 </span>
               }
               title="Text Type"
@@ -709,32 +709,32 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
               {(close) => (
                 <>
                   <DropdownItem onClick={() => { editor.chain().focus().setParagraph().run(); close(); }}>
-                    <IconLetterP className={cn(ICON_SIZE, 'mr-2')} />
+                    <Pilcrow className={cn(ICON_SIZE, 'mr-2')} />
                     Paragraph
                   </DropdownItem>
                   <DropdownSeparator />
                   <DropdownItem onClick={() => { editor.chain().focus().toggleHeading({ level: 1 }).run(); close(); }}>
-                    <IconH1 className={cn(ICON_SIZE, 'mr-2')} />
+                    <Heading1 className={cn(ICON_SIZE, 'mr-2')} />
                     <span className="font-bold text-lg">Heading 1</span>
                   </DropdownItem>
                   <DropdownItem onClick={() => { editor.chain().focus().toggleHeading({ level: 2 }).run(); close(); }}>
-                    <IconH2 className={cn(ICON_SIZE, 'mr-2')} />
+                    <Heading2 className={cn(ICON_SIZE, 'mr-2')} />
                     <span className="font-bold text-base">Heading 2</span>
                   </DropdownItem>
                   <DropdownItem onClick={() => { editor.chain().focus().toggleHeading({ level: 3 }).run(); close(); }}>
-                    <IconH3 className={cn(ICON_SIZE, 'mr-2')} />
+                    <Heading3 className={cn(ICON_SIZE, 'mr-2')} />
                     <span className="font-semibold">Heading 3</span>
                   </DropdownItem>
                   <DropdownItem onClick={() => { editor.chain().focus().toggleHeading({ level: 4 }).run(); close(); }}>
-                    <IconH4 className={cn(ICON_SIZE, 'mr-2')} />
+                    <Heading4 className={cn(ICON_SIZE, 'mr-2')} />
                     <span className="font-semibold text-sm">Heading 4</span>
                   </DropdownItem>
                   <DropdownItem onClick={() => { editor.chain().focus().toggleHeading({ level: 5 }).run(); close(); }}>
-                    <IconH5 className={cn(ICON_SIZE, 'mr-2')} />
+                    <Heading5 className={cn(ICON_SIZE, 'mr-2')} />
                     <span className="font-semibold text-xs">Heading 5</span>
                   </DropdownItem>
                   <DropdownItem onClick={() => { editor.chain().focus().toggleHeading({ level: 6 }).run(); close(); }}>
-                    <IconH6 className={cn(ICON_SIZE, 'mr-2')} />
+                    <Heading6 className={cn(ICON_SIZE, 'mr-2')} />
                     <span className="font-semibold text-xs text-gray-600">Heading 6</span>
                   </DropdownItem>
                 </>
@@ -745,7 +745,7 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
 
             {/* Font Size */}
             <ToolbarDropdown
-              trigger={<IconTextSize className={ICON_SIZE} />}
+              trigger={<ALargeSmall className={ICON_SIZE} />}
               title="Font Size"
             >
               {(close) => (
@@ -832,21 +832,21 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
               isActive={formattingState?.isBulletList}
               title="Bullet List"
             >
-              <IconList className={ICON_SIZE} />
+              <List className={ICON_SIZE} />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
               isActive={formattingState?.isOrderedList}
               title="Numbered List"
             >
-              <IconListNumbers className={ICON_SIZE} />
+              <ListOrdered className={ICON_SIZE} />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
               isActive={formattingState?.isBlockquote}
               title="Blockquote"
             >
-              <IconBlockquote className={ICON_SIZE} />
+              <Quote className={ICON_SIZE} />
             </ToolbarButton>
 
             <div className={TOOLBAR_DIVIDER} />
@@ -857,28 +857,28 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
               isActive={formattingState?.isAlignLeft}
               title="Align Left"
             >
-              <IconAlignLeft className={ICON_SIZE} />
+              <AlignLeft className={ICON_SIZE} />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().setTextAlign('center').run()}
               isActive={formattingState?.isAlignCenter}
               title="Align Center"
             >
-              <IconAlignCenter className={ICON_SIZE} />
+              <AlignCenter className={ICON_SIZE} />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().setTextAlign('right').run()}
               isActive={formattingState?.isAlignRight}
               title="Align Right"
             >
-              <IconAlignRight className={ICON_SIZE} />
+              <AlignRight className={ICON_SIZE} />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().setTextAlign('justify').run()}
               isActive={formattingState?.isAlignJustify}
               title="Justify"
             >
-              <IconAlignJustified className={ICON_SIZE} />
+              <AlignJustify className={ICON_SIZE} />
             </ToolbarButton>
 
             <div className={TOOLBAR_DIVIDER} />
@@ -890,7 +890,7 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
                 isActive={formattingState?.isLink}
                 title="Add Link"
               >
-                <IconLink className={ICON_SIZE} />
+                <Link className={ICON_SIZE} />
               </ToolbarButton>
               <LinkPopover
                 isOpen={isLinkPopoverOpen}
@@ -902,7 +902,7 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
 
             {/* Text Color */}
             <ToolbarDropdown
-              trigger={<IconPalette className={ICON_SIZE} />}
+              trigger={<Palette className={ICON_SIZE} />}
               title="Text Color"
             >
               {(close) => (
@@ -961,7 +961,7 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
 
             {/* Highlight (background color) */}
             <ToolbarDropdown
-              trigger={<IconHighlight className={ICON_SIZE} />}
+              trigger={<Highlighter className={ICON_SIZE} />}
               title="Highlight"
               isActive={formattingState?.isHighlight}
             >
@@ -993,13 +993,13 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
               onClick={() => editor.chain().focus().setHorizontalRule().run()}
               title="Horizontal Rule"
             >
-              <IconSeparatorHorizontal className={ICON_SIZE} />
+              <Minus className={ICON_SIZE} />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().setHardBreak().run()}
               title="Hard Break (Shift+Enter)"
             >
-              <IconCornerDownLeft className={ICON_SIZE} />
+              <CornerDownLeft className={ICON_SIZE} />
             </ToolbarButton>
 
             <div className={TOOLBAR_DIVIDER} />
@@ -1009,7 +1009,7 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
               onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
               title="Clear Formatting"
             >
-              <IconClearFormatting className={ICON_SIZE} />
+              <RemoveFormatting className={ICON_SIZE} />
             </ToolbarButton>
 
             {/* View Source */}
@@ -1031,7 +1031,7 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
                 !showSource && 'bg-transparent'
               )}
             >
-              <IconCode className={ICON_SIZE} />
+              <Code className={ICON_SIZE} />
               Source
             </button>
           </div>

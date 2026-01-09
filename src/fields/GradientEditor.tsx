@@ -13,7 +13,7 @@
  */
 
 import React, { useCallback, memo, useState } from 'react'
-import { IconPlus, IconTrash } from '@tabler/icons-react'
+import { Plus, Trash2 } from 'lucide-react'
 import type { GradientValue, GradientStop, ColorValue } from './shared'
 import { colorValueToCSS } from './shared'
 import { Button } from '../components/ui/button'
@@ -203,7 +203,7 @@ function GradientStopEditorInner({
             className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded flex-shrink-0"
             title="Remove stop"
           >
-            <IconTrash className="w-4 h-4" />
+            <Trash2 className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -442,7 +442,7 @@ function GradientEditorInner({ value, onChange, readOnly }: GradientEditorProps)
               onClick={handleAddStop}
               className="h-6 text-xs px-2"
             >
-              <IconPlus className="w-3 h-3 mr-1" />
+              <Plus className="w-3 h-3 mr-1" />
               Add Stop
             </Button>
           )}

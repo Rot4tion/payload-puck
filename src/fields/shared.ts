@@ -1351,14 +1351,14 @@ export function transformValueToCSS(
 // Responsive Field Types
 // =============================================================================
 
-export type Breakpoint = 'base' | 'sm' | 'md' | 'lg' | 'xl'
+export type Breakpoint = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 
 /**
  * Responsive value that can have different values at different breakpoints.
- * Base is required, other breakpoints are optional overrides.
+ * XS (extra small) is required, other breakpoints are optional overrides.
  */
 export interface ResponsiveValue<T> {
-  base: T
+  xs: T
   sm?: T
   md?: T
   lg?: T
@@ -1373,7 +1373,7 @@ export const BREAKPOINTS: Array<{
   label: string
   minWidth: number | null
 }> = [
-  { key: 'base', label: 'Base', minWidth: null },
+  { key: 'xs', label: 'XS', minWidth: null },
   { key: 'sm', label: 'SM', minWidth: 640 },
   { key: 'md', label: 'MD', minWidth: 768 },
   { key: 'lg', label: 'LG', minWidth: 1024 },
@@ -1389,7 +1389,7 @@ export const BREAKPOINTS: Array<{
  */
 export function isResponsiveValue<T>(value: unknown): value is ResponsiveValue<T> {
   if (!value || typeof value !== 'object') return false
-  return 'base' in value
+  return 'xs' in value
 }
 
 /**
@@ -1474,7 +1474,7 @@ export function responsiveValueToCSS<T>(
     const cssProps = converter(bpValue)
     if (!cssProps) return
 
-    if (bp.key === 'base') {
+    if (bp.key === 'xs') {
       baseStyles = cssProps
     } else {
       const styleString = cssPropertiesToString(cssProps)
@@ -1493,9 +1493,9 @@ export function responsiveValueToCSS<T>(
  * Visibility value for show/hide per breakpoint
  */
 export interface VisibilityValue {
-  /** Base visibility - true = visible, false = hidden (default: true) */
-  base: boolean
-  /** Override for small screens (640px+) */
+  /** XS (extra small) visibility - true = visible, false = hidden (default: true) */
+  xs: boolean
+  /** Small screens (640px+) */
   sm?: boolean
   /** Override for medium screens (768px+) */
   md?: boolean
@@ -1509,11 +1509,16 @@ export interface VisibilityValue {
  * Default visibility value (visible at all breakpoints)
  */
 export const DEFAULT_VISIBILITY: VisibilityValue = {
-  base: true,
+  xs: true,
+  sm: true,
+  md: true,
+  lg: true,
+  xl: true,
 }
 
 /**
  * Converts a VisibilityValue to CSS with display: none media queries.
+ * Each breakpoint is independent - generates targeted media queries for hidden breakpoints.
  *
  * @param visibility - The visibility settings per breakpoint
  * @param uniqueId - Unique class name for targeting in media queries
@@ -1527,31 +1532,50 @@ export function visibilityValueToCSS(
 
   const mediaQueries: string[] = []
 
-  // Check base visibility
-  if (visibility.base === false) {
-    mediaQueries.push(`.${uniqueId} { display: none; }`)
+  // Breakpoint min-widths for range calculations
+  const breakpointWidths: Record<Breakpoint, number | null> = {
+    xs: null, // 0px
+    sm: 640,
+    md: 768,
+    lg: 1024,
+    xl: 1280,
   }
 
-  // Generate media queries for breakpoints where visibility is explicitly false
-  // and different from the cascaded value
-  let lastVisibility = visibility.base
+  // Get next breakpoint's min-width for max-width calculation
+  const getNextBreakpointWidth = (bp: Breakpoint): number | null => {
+    const order: Breakpoint[] = ['xs', 'sm', 'md', 'lg', 'xl']
+    const index = order.indexOf(bp)
+    if (index === -1 || index === order.length - 1) return null
+    return breakpointWidths[order[index + 1]]
+  }
 
+  // XS (0 to 639px)
+  if (visibility.xs === false) {
+    const nextWidth = getNextBreakpointWidth('xs')
+    if (nextWidth) {
+      mediaQueries.push(`@media (max-width: ${nextWidth - 1}px) { .${uniqueId} { display: none; } }`)
+    } else {
+      mediaQueries.push(`.${uniqueId} { display: none; }`)
+    }
+  }
+
+  // Other breakpoints (sm, md, lg, xl)
   BREAKPOINTS.slice(1).forEach((bp) => {
-    const bpValue = visibility[bp.key]
-    if (bpValue === undefined) return
+    if (visibility[bp.key] === false) {
+      const minWidth = breakpointWidths[bp.key]
+      const maxWidth = getNextBreakpointWidth(bp.key)
 
-    if (bpValue !== lastVisibility) {
-      if (bpValue === false) {
+      if (minWidth && maxWidth) {
+        // Range query (e.g., sm: 640-767px)
         mediaQueries.push(
-          `@media (min-width: ${bp.minWidth}px) { .${uniqueId} { display: none; } }`
+          `@media (min-width: ${minWidth}px) and (max-width: ${maxWidth - 1}px) { .${uniqueId} { display: none; } }`
         )
-      } else {
-        // Re-show if it was hidden
+      } else if (minWidth) {
+        // Last breakpoint (xl: 1280px+)
         mediaQueries.push(
-          `@media (min-width: ${bp.minWidth}px) { .${uniqueId} { display: block; } }`
+          `@media (min-width: ${minWidth}px) { .${uniqueId} { display: none; } }`
         )
       }
-      lastVisibility = bpValue
     }
   })
 

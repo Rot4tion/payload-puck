@@ -11,17 +11,17 @@
 import React, { useCallback, memo } from 'react'
 import type { CustomField } from '@measured/puck'
 import {
-  IconLayoutAlignLeft,
-  IconLayoutAlignCenter,
-  IconLayoutAlignRight,
-  IconLayoutDistributeHorizontal,
-  IconSpacingHorizontal,
-  IconLayoutAlignTop,
-  IconLayoutAlignMiddle,
-  IconLayoutAlignBottom,
-  IconArrowsVertical,
-  IconX,
-} from '@tabler/icons-react'
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignHorizontalDistributeCenter,
+  GripHorizontal,
+  AlignStartVertical,
+  AlignCenterVertical,
+  AlignEndVertical,
+  MoveVertical,
+  X,
+} from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Label } from '../components/ui/label'
 import { cn } from '../lib/utils'
@@ -71,11 +71,11 @@ function JustifyContentFieldInner({
   }, [onChange])
 
   const options = [
-    { value: 'flex-start' as JustifyContent, icon: IconLayoutAlignLeft, title: 'Start' },
-    { value: 'center' as JustifyContent, icon: IconLayoutAlignCenter, title: 'Center' },
-    { value: 'flex-end' as JustifyContent, icon: IconLayoutAlignRight, title: 'End' },
-    { value: 'space-between' as JustifyContent, icon: IconLayoutDistributeHorizontal, title: 'Space Between' },
-    { value: 'space-around' as JustifyContent, icon: IconSpacingHorizontal, title: 'Space Around' },
+    { value: 'flex-start' as JustifyContent, icon: AlignLeft, title: 'Start' },
+    { value: 'center' as JustifyContent, icon: AlignCenter, title: 'Center' },
+    { value: 'flex-end' as JustifyContent, icon: AlignRight, title: 'End' },
+    { value: 'space-between' as JustifyContent, icon: AlignHorizontalDistributeCenter, title: 'Space Between' },
+    { value: 'space-around' as JustifyContent, icon: GripHorizontal, title: 'Space Around' },
   ]
 
   return (
@@ -93,7 +93,7 @@ function JustifyContentFieldInner({
             className="text-muted-foreground hover:text-destructive"
             title="Reset to default"
           >
-            <IconX className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>
@@ -148,10 +148,10 @@ function AlignItemsFieldInner({
   }, [onChange])
 
   const options = [
-    { value: 'flex-start' as AlignItems, icon: IconLayoutAlignTop, title: 'Start' },
-    { value: 'center' as AlignItems, icon: IconLayoutAlignMiddle, title: 'Center' },
-    { value: 'flex-end' as AlignItems, icon: IconLayoutAlignBottom, title: 'End' },
-    { value: 'stretch' as AlignItems, icon: IconArrowsVertical, title: 'Stretch' },
+    { value: 'flex-start' as AlignItems, icon: AlignStartVertical, title: 'Start' },
+    { value: 'center' as AlignItems, icon: AlignCenterVertical, title: 'Center' },
+    { value: 'flex-end' as AlignItems, icon: AlignEndVertical, title: 'End' },
+    { value: 'stretch' as AlignItems, icon: MoveVertical, title: 'Stretch' },
   ]
 
   return (
@@ -169,7 +169,7 @@ function AlignItemsFieldInner({
             className="text-muted-foreground hover:text-destructive"
             title="Reset to default"
           >
-            <IconX className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>

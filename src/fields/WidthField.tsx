@@ -13,14 +13,14 @@
 import React, { useCallback, memo } from 'react'
 import type { CustomField } from '@measured/puck'
 import {
-  IconX,
-  IconLayoutAlignLeft,
-  IconLayoutAlignCenter,
-  IconLayoutAlignRight,
-  IconArrowsHorizontal,
-  IconContainer,
-  IconAdjustments,
-} from '@tabler/icons-react'
+  X,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  MoveHorizontal,
+  Container,
+  SlidersHorizontal,
+} from 'lucide-react'
 import type { WidthValue } from './shared'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
@@ -157,7 +157,7 @@ function WidthFieldInner({
             className="text-muted-foreground hover:text-destructive"
             title="Reset to default"
           >
-            <IconX className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>
@@ -165,9 +165,9 @@ function WidthFieldInner({
       {/* Width Mode Selector - segmented control */}
       <div className="flex flex-wrap gap-1">
         {([
-          { mode: 'full' as WidthMode, icon: IconArrowsHorizontal, title: 'Full width (100%)' },
-          { mode: 'contained' as WidthMode, icon: IconContainer, title: 'Contained (centered with max-width)' },
-          { mode: 'custom' as WidthMode, icon: IconAdjustments, title: 'Custom width settings' },
+          { mode: 'full' as WidthMode, icon: MoveHorizontal, title: 'Full width (100%)' },
+          { mode: 'contained' as WidthMode, icon: Container, title: 'Contained (centered with max-width)' },
+          { mode: 'custom' as WidthMode, icon: SlidersHorizontal, title: 'Custom width settings' },
         ]).map(({ mode, icon: Icon, title }) => {
           const isActive = currentValue.mode === mode
           return (
@@ -265,9 +265,9 @@ function WidthFieldInner({
           <Label className="text-xs text-muted-foreground flex-shrink-0">Align:</Label>
           <div className="flex gap-1">
             {([
-              { alignment: 'left' as ContentAlignment, icon: IconLayoutAlignLeft, title: 'Align left' },
-              { alignment: 'center' as ContentAlignment, icon: IconLayoutAlignCenter, title: 'Align center' },
-              { alignment: 'right' as ContentAlignment, icon: IconLayoutAlignRight, title: 'Align right' },
+              { alignment: 'left' as ContentAlignment, icon: AlignLeft, title: 'Align left' },
+              { alignment: 'center' as ContentAlignment, icon: AlignCenter, title: 'Align center' },
+              { alignment: 'right' as ContentAlignment, icon: AlignRight, title: 'Align right' },
             ]).map(({ alignment, icon: Icon, title }) => {
               const isActive = currentValue.alignment === alignment
               const isDisabled = readOnly || currentValue.mode === 'full'
