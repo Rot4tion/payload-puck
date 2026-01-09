@@ -17,6 +17,8 @@ examples/
 ├── app/
 │   ├── (frontend)/
 │   │   └── page.tsx                  # Homepage route (root "/")
+│   ├── (manage)/
+│   │   └── layout.tsx                # Editor layout (imports Tailwind CSS)
 │   ├── pages/
 │   │   └── [id]/
 │   │       └── edit/
@@ -65,13 +67,18 @@ export default buildConfig({
 cp -r node_modules/@delmaredigital/payload-puck/examples/api/puck src/app/api/
 ```
 
-### 3. Copy Editor Page
+### 3. Copy Editor Page & Layout
 
 ```bash
-# Adjust the destination path as needed for your route structure
+# Create route group and copy layout (REQUIRED for Tailwind styles)
 mkdir -p src/app/\(manage\)/pages/\[id\]/edit
+cp node_modules/@delmaredigital/payload-puck/examples/app/\(manage\)/layout.tsx src/app/\(manage\)/
+
+# Copy editor page
 cp node_modules/@delmaredigital/payload-puck/examples/app/pages/\[id\]/edit/page.tsx src/app/\(manage\)/pages/\[id\]/edit/
 ```
+
+> **Important:** The layout file imports Tailwind CSS. Without it, the editor will be completely unstyled. Update the CSS import path in `layout.tsx` to match your project's globals.css location.
 
 ### 4. Copy Frontend Routes
 

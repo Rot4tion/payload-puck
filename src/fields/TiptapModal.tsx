@@ -9,7 +9,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { TiptapField } from './TiptapField'
-import { IconX } from '@tabler/icons-react'
+import { X } from 'lucide-react'
 
 interface TiptapModalProps {
   isOpen: boolean
@@ -119,7 +119,7 @@ export function TiptapModal({ isOpen, onClose, value, onChange, title }: TiptapM
             }}
             title="Close (Esc)"
           >
-            <IconX size={20} />
+            <X size={20} />
           </button>
         </div>
 

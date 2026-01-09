@@ -9,7 +9,7 @@
 
 import React, { useCallback, memo } from 'react'
 import type { CustomField } from '@measured/puck'
-import { IconX } from '@tabler/icons-react'
+import { X } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
@@ -137,7 +137,7 @@ function SizeFieldInner({
             className="text-muted-foreground hover:text-destructive"
             title="Reset to default"
           >
-            <IconX className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>

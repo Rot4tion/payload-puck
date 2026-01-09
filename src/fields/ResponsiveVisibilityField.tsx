@@ -4,21 +4,20 @@
  * ResponsiveVisibilityField - Show/hide elements at different breakpoints
  *
  * Provides a compact visual interface for toggling element visibility
- * at each breakpoint (base, sm, md, lg, xl). Similar to Divi/Elementor
- * visibility controls.
+ * at each breakpoint (xs, sm, md, lg, xl). Simple independent toggles
+ * like Elementor/Divi - each breakpoint is just on or off.
  */
 
 import React, { useCallback, memo } from 'react'
 import type { CustomField } from '@measured/puck'
 import {
-  IconDeviceMobile,
-  IconDeviceTablet,
-  IconDeviceLaptop,
-  IconDeviceDesktop,
-  IconDevices,
-  IconEye,
-  IconEyeOff,
-} from '@tabler/icons-react'
+  Smartphone,
+  Tablet,
+  Laptop,
+  Monitor,
+  Eye,
+  EyeOff,
+} from 'lucide-react'
 import { Label } from '../components/ui/label'
 import { cn } from '../lib/utils'
 import type { Breakpoint, VisibilityValue } from './shared'
@@ -40,11 +39,11 @@ interface ResponsiveVisibilityFieldProps {
 // =============================================================================
 
 const BREAKPOINT_ICONS: Record<Breakpoint, React.ComponentType<{ className?: string }>> = {
-  base: IconDevices,
-  sm: IconDeviceMobile,
-  md: IconDeviceTablet,
-  lg: IconDeviceLaptop,
-  xl: IconDeviceDesktop,
+  xs: Smartphone,
+  sm: Smartphone,
+  md: Tablet,
+  lg: Laptop,
+  xl: Monitor,
 }
 
 // =============================================================================
@@ -56,7 +55,6 @@ interface VisibilityToggleProps {
   label: string
   minWidth: number | null
   isVisible: boolean
-  isInherited: boolean
   onClick: () => void
   disabled?: boolean
 }
@@ -66,7 +64,6 @@ function VisibilityToggle({
   label,
   minWidth,
   isVisible,
-  isInherited,
   onClick,
   disabled,
 }: VisibilityToggleProps) {
@@ -77,13 +74,12 @@ function VisibilityToggle({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      title={`${label}${minWidth ? ` (${minWidth}px+)` : ''}: ${isVisible ? 'Visible' : 'Hidden'}${isInherited ? ' (inherited)' : ''}`}
+      title={`${label}${minWidth ? ` (${minWidth}px+)` : ''}: ${isVisible ? 'Visible' : 'Hidden'}`}
       className={cn(
         'relative flex flex-col items-center justify-center gap-0.5 p-2 rounded-md transition-all flex-1 min-w-[52px]',
         isVisible
-          ? 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border border-emerald-500/30'
-          : 'bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/30',
-        isInherited && 'opacity-60',
+          ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 border border-emerald-500/40'
+          : 'bg-red-500/15 text-red-500 hover:bg-red-500/25 border border-red-500/40',
         disabled && 'opacity-50 cursor-not-allowed'
       )}
     >
@@ -92,17 +88,11 @@ function VisibilityToggle({
       {/* Visibility icon overlay */}
       <div className="absolute top-1 right-1">
         {isVisible ? (
-          <IconEye className="h-3 w-3" />
+          <Eye className="h-3 w-3" />
         ) : (
-          <IconEyeOff className="h-3 w-3" />
+          <EyeOff className="h-3 w-3" />
         )}
       </div>
-      {/* Inherited indicator */}
-      {isInherited && (
-        <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 text-[8px] text-muted-foreground">
-          •
-        </span>
-      )}
     </button>
   )
 }
@@ -117,116 +107,65 @@ function ResponsiveVisibilityFieldInner({
   label,
   readOnly,
 }: ResponsiveVisibilityFieldProps) {
-  // Get effective visibility for a breakpoint (with cascade)
-  const getEffectiveVisibility = useCallback(
-    (breakpoint: Breakpoint): { visible: boolean; inherited: boolean } => {
+  // Get visibility for a breakpoint (simple lookup, no cascade)
+  const getVisibility = useCallback(
+    (breakpoint: Breakpoint): boolean => {
       const val = value ?? DEFAULT_VISIBILITY
-
-      if (breakpoint === 'base') {
-        return { visible: val.base, inherited: false }
-      }
-
-      // Check if this breakpoint has an explicit value
-      const explicitValue = val[breakpoint]
-      if (explicitValue !== undefined) {
-        return { visible: explicitValue, inherited: false }
-      }
-
-      // Cascade down to find the nearest defined value
-      const breakpointOrder: Breakpoint[] = ['xl', 'lg', 'md', 'sm', 'base']
-      const currentIndex = breakpointOrder.indexOf(breakpoint)
-
-      for (let i = currentIndex + 1; i < breakpointOrder.length; i++) {
-        const bp = breakpointOrder[i]
-        const bpValue = val[bp]
-        if (bpValue !== undefined) {
-          return { visible: bpValue, inherited: true }
-        }
-      }
-
-      return { visible: val.base, inherited: true }
+      // All breakpoints have explicit values, default to true if undefined
+      return val[breakpoint] ?? true
     },
     [value]
   )
 
-  // Toggle visibility for a breakpoint
+  // Toggle visibility for a breakpoint (simple toggle, no cascade)
   const toggleVisibility = useCallback(
     (breakpoint: Breakpoint) => {
-      const current = getEffectiveVisibility(breakpoint)
-      const newVisible = !current.visible
-
-      if (breakpoint === 'base') {
-        onChange({
-          ...(value ?? DEFAULT_VISIBILITY),
-          base: newVisible,
-        })
-      } else {
-        // For non-base breakpoints, set explicit override
-        const newValue: VisibilityValue = {
-          ...(value ?? DEFAULT_VISIBILITY),
-          [breakpoint]: newVisible,
-        }
-        onChange(newValue)
+      const currentVisible = getVisibility(breakpoint)
+      const newValue: VisibilityValue = {
+        ...(value ?? DEFAULT_VISIBILITY),
+        [breakpoint]: !currentVisible,
       }
+      onChange(newValue)
     },
-    [value, onChange, getEffectiveVisibility]
+    [value, onChange, getVisibility]
   )
 
-  // Count how many breakpoints have explicit overrides
-  const overrideCount = value
-    ? (['sm', 'md', 'lg', 'xl'] as Breakpoint[]).filter((bp) => value[bp] !== undefined).length
-    : 0
-
   // Check if any breakpoint is hidden
-  const hasHiddenBreakpoints = BREAKPOINTS.some((bp) => {
-    const { visible } = getEffectiveVisibility(bp.key)
-    return !visible
-  })
+  const hasHiddenBreakpoints = BREAKPOINTS.some((bp) => !getVisibility(bp.key))
 
   return (
     <div className="puck-field space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between">
         {label && (
-          <div className="flex items-center gap-2">
-            <Label className="text-sm font-medium text-foreground">{label}</Label>
-            {overrideCount > 0 && (
-              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                {overrideCount} override{overrideCount !== 1 ? 's' : ''}
-              </span>
-            )}
-          </div>
+          <Label className="text-sm font-medium text-foreground">{label}</Label>
         )}
         {hasHiddenBreakpoints && (
           <span className="text-xs text-amber-600 flex items-center gap-1">
-            <IconEyeOff className="h-3 w-3" />
-            Hidden
+            <EyeOff className="h-3 w-3" />
+            Partially hidden
           </span>
         )}
       </div>
 
       {/* Visibility Grid */}
       <div className="flex gap-1">
-        {BREAKPOINTS.map((bp) => {
-          const { visible, inherited } = getEffectiveVisibility(bp.key)
-          return (
-            <VisibilityToggle
-              key={bp.key}
-              breakpoint={bp.key}
-              label={bp.label}
-              minWidth={bp.minWidth}
-              isVisible={visible}
-              isInherited={inherited}
-              onClick={() => toggleVisibility(bp.key)}
-              disabled={readOnly}
-            />
-          )
-        })}
+        {BREAKPOINTS.map((bp) => (
+          <VisibilityToggle
+            key={bp.key}
+            breakpoint={bp.key}
+            label={bp.label}
+            minWidth={bp.minWidth}
+            isVisible={getVisibility(bp.key)}
+            onClick={() => toggleVisibility(bp.key)}
+            disabled={readOnly}
+          />
+        ))}
       </div>
 
       {/* Help text */}
       <p className="text-xs text-muted-foreground">
-        Click to toggle visibility. Changes cascade to larger breakpoints.
+        Toggle visibility per screen size. Each breakpoint is independent.
       </p>
     </div>
   )

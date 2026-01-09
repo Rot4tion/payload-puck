@@ -16,15 +16,15 @@
 import React, { useCallback, memo, useState } from 'react'
 import type { CustomField } from '@measured/puck'
 import {
-  IconLink,
-  IconLinkOff,
-  IconRotate,
-  IconResize,
-  IconX,
-  IconChevronDown,
-  IconChevronRight,
-  Icon3dCubeSphere,
-} from '@tabler/icons-react'
+  Link,
+  Unlink,
+  RotateCw,
+  Maximize2,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Box,
+} from 'lucide-react'
 import type { TransformValue, TransformOrigin } from './shared'
 import { DEFAULT_TRANSFORM, transformValueToCSS } from './shared'
 import { Button } from '../components/ui/button'
@@ -261,7 +261,7 @@ function TransformFieldInner({
             className="text-muted-foreground hover:text-destructive"
             title="Reset transform"
           >
-            <IconX className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>
@@ -279,7 +279,7 @@ function TransformFieldInner({
       {/* Rotate */}
       <div className="space-y-2 p-3 bg-muted/30 rounded-md">
         <div className="flex items-center gap-2 mb-2">
-          <IconRotate className="h-4 w-4 text-muted-foreground" />
+          <RotateCw className="h-4 w-4 text-muted-foreground" />
           <Label className="text-xs font-medium">Rotate</Label>
         </div>
         <SliderInput
@@ -296,7 +296,7 @@ function TransformFieldInner({
       <div className="space-y-3 p-3 bg-muted/30 rounded-md">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <IconResize className="h-4 w-4 text-muted-foreground" />
+            <Maximize2 className="h-4 w-4 text-muted-foreground" />
             <Label className="text-xs font-medium">Scale</Label>
           </div>
           {!readOnly && (
@@ -313,9 +313,9 @@ function TransformFieldInner({
               }
             >
               {currentValue.scaleLocked ? (
-                <IconLink className="h-3 w-3" />
+                <Link className="h-3 w-3" />
               ) : (
-                <IconLinkOff className="h-3 w-3" />
+                <Unlink className="h-3 w-3" />
               )}
             </Button>
           )}
@@ -444,13 +444,13 @@ function TransformFieldInner({
           className="w-full flex items-center justify-between p-3 bg-muted/30 hover:bg-muted/50 transition-colors"
         >
           <div className="flex items-center gap-2">
-            <Icon3dCubeSphere className="h-4 w-4 text-muted-foreground" />
+            <Box className="h-4 w-4 text-muted-foreground" />
             <Label className="text-xs font-medium cursor-pointer">3D Transforms</Label>
           </div>
           {show3D ? (
-            <IconChevronDown className="h-4 w-4 text-muted-foreground" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
           ) : (
-            <IconChevronRight className="h-4 w-4 text-muted-foreground" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           )}
         </button>
 

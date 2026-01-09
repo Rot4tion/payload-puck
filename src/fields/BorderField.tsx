@@ -14,12 +14,12 @@
 import React, { useCallback, memo } from 'react'
 import type { CustomField } from '@measured/puck'
 import {
-  IconX,
-  IconBorderTop,
-  IconBorderRight,
-  IconBorderBottom,
-  IconBorderLeft,
-} from '@tabler/icons-react'
+  X,
+  ArrowUp,
+  ArrowRight,
+  ArrowDown,
+  ArrowLeft,
+} from 'lucide-react'
 import { ColorPickerField } from './ColorPickerField'
 import type { BorderValue, ColorValue } from './shared'
 import { Button } from '../components/ui/button'
@@ -162,7 +162,7 @@ function BorderFieldInner({
             className="text-muted-foreground hover:text-destructive"
             title="Clear border"
           >
-            <IconX className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>
@@ -273,7 +273,7 @@ function BorderFieldInner({
               )}
               title="Top border"
             >
-              <IconBorderTop className="h-4 w-4" />
+              <ArrowUp className="h-4 w-4" />
             </Button>
             <Button
               type="button"
@@ -286,7 +286,7 @@ function BorderFieldInner({
               )}
               title="Right border"
             >
-              <IconBorderRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4" />
             </Button>
             <Button
               type="button"
@@ -299,7 +299,7 @@ function BorderFieldInner({
               )}
               title="Bottom border"
             >
-              <IconBorderBottom className="h-4 w-4" />
+              <ArrowDown className="h-4 w-4" />
             </Button>
             <Button
               type="button"
@@ -312,7 +312,7 @@ function BorderFieldInner({
               )}
               title="Left border"
             >
-              <IconBorderLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4" />
             </Button>
           </div>
           <p className="text-[10px] text-muted-foreground text-center">

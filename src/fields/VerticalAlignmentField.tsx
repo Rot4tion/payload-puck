@@ -10,11 +10,11 @@
 import React, { useCallback, memo } from 'react'
 import type { CustomField } from '@measured/puck'
 import {
-  IconLayoutAlignTop,
-  IconLayoutAlignMiddle,
-  IconLayoutAlignBottom,
-  IconX,
-} from '@tabler/icons-react'
+  AlignStartVertical,
+  AlignCenterVertical,
+  AlignEndVertical,
+  X,
+} from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Label } from '../components/ui/label'
 import { cn } from '../lib/utils'
@@ -55,9 +55,9 @@ function VerticalAlignmentFieldInner({
   }, [onChange])
 
   const options = [
-    { value: 'flex-start' as VerticalAlignment, icon: IconLayoutAlignTop, title: 'Top' },
-    { value: 'center' as VerticalAlignment, icon: IconLayoutAlignMiddle, title: 'Center' },
-    { value: 'flex-end' as VerticalAlignment, icon: IconLayoutAlignBottom, title: 'Bottom' },
+    { value: 'flex-start' as VerticalAlignment, icon: AlignStartVertical, title: 'Top' },
+    { value: 'center' as VerticalAlignment, icon: AlignCenterVertical, title: 'Center' },
+    { value: 'flex-end' as VerticalAlignment, icon: AlignEndVertical, title: 'Bottom' },
   ]
 
   return (
@@ -75,7 +75,7 @@ function VerticalAlignmentFieldInner({
             className="text-muted-foreground hover:text-destructive"
             title="Reset to default"
           >
-            <IconX className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>

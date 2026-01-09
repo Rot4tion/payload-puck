@@ -15,7 +15,7 @@
 
 import React, { useState } from 'react'
 import type { CustomField } from '@measured/puck'
-import { IconLock, IconLockOpen } from '@tabler/icons-react'
+import { Lock, Unlock } from 'lucide-react'
 
 // =============================================================================
 // Types
@@ -75,9 +75,9 @@ export function LockedTextField({
           title={isLocked ? 'Click to unlock' : 'Click to lock'}
         >
           {isLocked ? (
-            <IconLock size={14} />
+            <Lock size={14} />
           ) : (
-            <IconLockOpen size={14} />
+            <Unlock size={14} />
           )}
         </button>
       </div>
@@ -105,7 +105,7 @@ export function LockedTextField({
           }}
         />
         {isLocked && (
-          <IconLock
+          <Lock
             size={14}
             style={{
               position: 'absolute',
@@ -174,9 +174,9 @@ export function LockedRadioField({
           title={isLocked ? 'Click to unlock' : 'Click to lock'}
         >
           {isLocked ? (
-            <IconLock size={14} />
+            <Lock size={14} />
           ) : (
-            <IconLockOpen size={14} />
+            <Unlock size={14} />
           )}
         </button>
       </div>

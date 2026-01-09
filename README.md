@@ -31,7 +31,7 @@ A PayloadCMS plugin for integrating [Puck](https://puckeditor.com) visual page b
 |------------|---------|---------|
 | `@measured/puck` | >= 0.20.0 | Visual editor core |
 | `payload` | >= 3.0.0 | CMS backend |
-| `next` | >= 15.4.0 | React framework |
+| `next` | >= 15.4.8 | React framework |
 | `react` | >= 18.0.0 | UI library |
 | `@tailwindcss/typography` | >= 0.5.0 | RichText component styling |
 
@@ -64,8 +64,9 @@ The package includes ready-to-use example files:
 # Copy API routes
 cp -r node_modules/@delmaredigital/payload-puck/examples/api/puck src/app/api/
 
-# Copy editor page
+# Copy editor layout (REQUIRED - imports Tailwind CSS) and page
 mkdir -p src/app/\(manage\)/pages/\[id\]/edit
+cp node_modules/@delmaredigital/payload-puck/examples/app/\(manage\)/layout.tsx src/app/\(manage\)/
 cp node_modules/@delmaredigital/payload-puck/examples/app/pages/\[id\]/edit/page.tsx src/app/\(manage\)/pages/\[id\]/edit/
 
 # Copy frontend routes (homepage + dynamic pages)
@@ -78,6 +79,8 @@ cp node_modules/@delmaredigital/payload-puck/examples/app/\[...slug\]/page.tsx s
 mkdir -p src/lib
 cp node_modules/@delmaredigital/payload-puck/examples/lib/puck-theme.ts src/lib/
 ```
+
+> **Important:** Update the CSS import path in `src/app/(manage)/layout.tsx` to match your project's globals.css location.
 
 See `examples/README.md` for detailed customization instructions.
 
@@ -142,10 +145,33 @@ export const { GET, PATCH, DELETE } = createPuckApiRoutesWithId({
 })
 ```
 
-#### Step 3: Create the Editor Page
+#### Step 3: Create the Editor Layout & Page
+
+First, create a layout that imports your Tailwind CSS:
 
 ```typescript
-// app/pages/[id]/edit/page.tsx
+// app/(manage)/layout.tsx
+import '@/app/(frontend)/globals.css' // Adjust path to your CSS
+
+export const metadata = {
+  title: 'Puck Editor',
+  description: 'Visual page editor',
+}
+
+export default function ManageLayout({ children }: { children: React.ReactNode }) {
+  return (
+    // data-theme may be required if your CSS hides content until theme is set
+    <html lang="en" data-theme="light">
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+Then create the editor page:
+
+```typescript
+// app/(manage)/pages/[id]/edit/page.tsx
 'use client'
 
 import { PuckEditorView } from '@delmaredigital/payload-puck/editor'
@@ -400,6 +426,7 @@ Use this checklist to verify your setup is complete.
 - [ ] Install packages: `@delmaredigital/payload-puck` and `@measured/puck`
 - [ ] Add `createPuckPlugin()` to your Payload config
 - [ ] Create API routes (`/api/puck/pages` and `/api/puck/pages/[id]`)
+- [ ] Create editor route layout that imports Tailwind CSS (see examples)
 - [ ] Create the editor page component with `PuckEditorView`
 - [ ] Create a frontend route with `PageRenderer`
 

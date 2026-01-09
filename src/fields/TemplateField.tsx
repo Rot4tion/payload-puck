@@ -17,15 +17,15 @@ import type { CustomField } from '@measured/puck'
 import { createUsePuck } from '@measured/puck'
 import type { Data } from '@measured/puck'
 import {
-  IconTemplate,
-  IconLoader2,
-  IconDeviceFloppy,
-  IconDownload,
-  IconAlertCircle,
-  IconChevronDown,
-  IconChevronUp,
-  IconX,
-} from '@tabler/icons-react'
+  LayoutTemplate,
+  Loader2,
+  Save,
+  Download,
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  X,
+} from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
@@ -450,7 +450,7 @@ function TemplateFieldInner({
             title="Clear selection"
             className="text-muted-foreground hover:text-foreground"
           >
-            <IconX className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>
@@ -466,9 +466,9 @@ function TemplateFieldInner({
             disabled={loading || saveForm.saving}
           >
             {saveForm.expanded ? (
-              <IconChevronUp className="h-4 w-4" />
+              <ChevronUp className="h-4 w-4" />
             ) : (
-              <IconDeviceFloppy className="h-4 w-4" />
+              <Save className="h-4 w-4" />
             )}
             {saveForm.expanded ? 'Cancel' : 'Save as Template'}
           </Button>
@@ -482,9 +482,9 @@ function TemplateFieldInner({
               disabled={loadingTemplate}
             >
               {loadingTemplate ? (
-                <IconLoader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <IconDownload className="h-4 w-4" />
+                <Download className="h-4 w-4" />
               )}
               Reload
             </Button>
@@ -545,7 +545,7 @@ function TemplateFieldInner({
 
           {saveForm.error && (
             <div className="p-2 bg-destructive/10 border border-destructive/30 rounded-md text-destructive text-xs flex items-start gap-2">
-              <IconAlertCircle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
               <span>{saveForm.error}</span>
             </div>
           )}
@@ -558,12 +558,12 @@ function TemplateFieldInner({
           >
             {saveForm.saving ? (
               <>
-                <IconLoader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Saving...
               </>
             ) : (
               <>
-                <IconDeviceFloppy className="h-4 w-4" />
+                <Save className="h-4 w-4" />
                 Save Template
               </>
             )}
@@ -574,7 +574,7 @@ function TemplateFieldInner({
       {/* Error Display */}
       {error && (
         <div className="p-2 bg-destructive/10 border border-destructive/30 rounded-md text-destructive text-sm flex items-start gap-2">
-          <IconAlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
       )}

@@ -10,7 +10,7 @@
 
 import type { ComponentConfig } from '@measured/puck'
 import { useState } from 'react'
-import { IconChevronDown } from '@tabler/icons-react'
+import { ChevronDown } from 'lucide-react'
 import {
   marginValueToCSS,
   paddingValueToCSS,
@@ -77,7 +77,7 @@ function AccordionItem({
         style={textStyle}
       >
         <span>{item.title}</span>
-        <IconChevronDown
+        <ChevronDown
           className={cn(
             'h-4 w-4 shrink-0 transition-transform duration-200',
             isOpen && 'rotate-180'

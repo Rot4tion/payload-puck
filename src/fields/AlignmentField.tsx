@@ -10,11 +10,11 @@
 import React, { useCallback, memo } from 'react'
 import type { CustomField } from '@measured/puck'
 import {
-  IconLayoutAlignLeft,
-  IconLayoutAlignCenter,
-  IconLayoutAlignRight,
-  IconX,
-} from '@tabler/icons-react'
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  X,
+} from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Label } from '../components/ui/label'
 import { cn } from '../lib/utils'
@@ -56,9 +56,9 @@ function AlignmentFieldInner({
   }, [onChange])
 
   const alignments = [
-    { value: 'left' as Alignment, icon: IconLayoutAlignLeft, title: 'Align left' },
-    { value: 'center' as Alignment, icon: IconLayoutAlignCenter, title: 'Align center' },
-    { value: 'right' as Alignment, icon: IconLayoutAlignRight, title: 'Align right' },
+    { value: 'left' as Alignment, icon: AlignLeft, title: 'Align left' },
+    { value: 'center' as Alignment, icon: AlignCenter, title: 'Align center' },
+    { value: 'right' as Alignment, icon: AlignRight, title: 'Align right' },
   ]
 
   return (
@@ -77,7 +77,7 @@ function AlignmentFieldInner({
             className="text-muted-foreground hover:text-destructive"
             title="Reset to default"
           >
-            <IconX className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>
