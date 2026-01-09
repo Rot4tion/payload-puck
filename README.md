@@ -17,6 +17,7 @@ A PayloadCMS plugin for integrating [Puck](https://puckeditor.com) visual page b
 - [Theming](#theming)
 - [Layouts](#layouts)
 - [API Routes](#api-routes)
+- [SEO Fields](#seo-fields)
 - [Plugin Options](#plugin-options)
 - [Hybrid Integration](#hybrid-integration)
 - [License](#license)
@@ -1357,6 +1358,82 @@ createPuckApiRoutesWithId({
     { from: 'pageLayout', to: 'pageLayout' },
   ],
 })
+```
+
+</details>
+
+---
+
+<details>
+<summary><strong>SEO Fields</strong> — Robots meta, sitemap integration</summary>
+
+The plugin adds SEO-related fields to each page in the `meta` group:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `meta.title` | text | Page title for search engines |
+| `meta.description` | textarea | Meta description |
+| `meta.image` | upload | Social sharing image |
+| `meta.noindex` | checkbox | Prevent search engine indexing |
+| `meta.nofollow` | checkbox | Prevent search engines from following links |
+| `meta.excludeFromSitemap` | checkbox | Exclude page from XML sitemap |
+
+**These fields are not automatically wired to your frontend.** You need to implement them based on your setup.
+
+### Robots Meta (Next.js App Router)
+
+In your page's `generateMetadata` function:
+
+```typescript
+// app/(frontend)/[...slug]/page.tsx
+export async function generateMetadata({ params }): Promise<Metadata> {
+  const page = await getPage(params.slug)
+
+  return {
+    title: page.meta?.title || page.title,
+    description: page.meta?.description,
+    robots: {
+      index: !page.meta?.noindex,
+      follow: !page.meta?.nofollow,
+    },
+  }
+}
+```
+
+### Dynamic Sitemap
+
+Filter out pages marked as excluded in your `sitemap.ts`:
+
+```typescript
+// app/sitemap.ts
+import type { MetadataRoute } from 'next'
+import { getPayload } from 'payload'
+import config from '@payload-config'
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = 'https://yoursite.com'
+  const payload = await getPayload({ config })
+
+  const { docs: pages } = await payload.find({
+    collection: 'pages',
+    limit: 1000,
+    where: {
+      or: [
+        { 'meta.excludeFromSitemap': { equals: false } },
+        { 'meta.excludeFromSitemap': { exists: false } },
+      ],
+    },
+    select: {
+      slug: true,
+      updatedAt: true,
+    },
+  })
+
+  return pages.map((page) => ({
+    url: `${baseUrl}/${page.slug}`,
+    lastModified: new Date(page.updatedAt),
+  }))
+}
 ```
 
 </details>
