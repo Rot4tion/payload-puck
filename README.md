@@ -1584,25 +1584,4 @@ export default async function Page({ params }) {
 
 ## License
 
-This project is licensed under the [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/).
-
-### What This Means
-
-**✅ Free for:**
-- Personal projects and hobby use
-- Open source projects
-- Educational and research purposes
-- Evaluation and testing
-- Nonprofit organizations
-- Government institutions
-
-**💼 Commercial use:**
-Requires a separate commercial license. If you're using this in a commercial product or service, please contact us for licensing options.
-
-**📧 Commercial Licensing:** [hello@delmaredigital.com](mailto:hello@delmaredigital.com)
-
----
-
-## About
-
-Built by [Delmare Digital](https://delmaredigital.com) — custom software solutions for growing businesses.
+MIT
