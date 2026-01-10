@@ -15,7 +15,7 @@
  * - HTML source view/edit mode
  */
 
-import React, { useCallback, memo, useState, useRef, useEffect } from 'react'
+import React, { useCallback, memo, useState, useRef, useEffect, type CSSProperties } from 'react'
 import type { CustomField } from '@measured/puck'
 import { useEditor, EditorContent, useEditorState } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
@@ -58,13 +58,12 @@ import {
   CornerDownLeft,
   Pilcrow,
 } from 'lucide-react'
-import { cn } from '../lib/utils'
+import { useTheme } from '../theme'
 import './tiptap-styles.css'
 import './richtext-output.css'
 
 // =============================================================================
 // Injected Editor Styles
-// These are injected directly to ensure styles load regardless of bundler config
 // =============================================================================
 
 const TIPTAP_EDITOR_STYLES = `
@@ -81,9 +80,10 @@ const TIPTAP_EDITOR_STYLES = `
 .tiptap-editor ol { list-style-type: decimal !important; }
 .tiptap-editor li { margin: 0.25em 0; }
 .tiptap-editor li p { margin: 0; }
-.tiptap-editor blockquote { border-left: 4px solid #e5e7eb !important; padding-left: 1em !important; margin: 1em 0 !important; font-style: italic !important; }
+.tiptap-editor blockquote { border-left: 4px solid var(--theme-elevation-200) !important; padding-left: 1em !important; margin: 1em 0 !important; font-style: italic !important; }
 .tiptap-editor p { margin: 0 0 1em 0; }
 .tiptap-editor p:last-child { margin-bottom: 0; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 `
 
 // Inject styles once when module loads
@@ -94,28 +94,373 @@ if (typeof document !== 'undefined') {
     style.id = styleId
     style.textContent = TIPTAP_EDITOR_STYLES
     document.head.appendChild(style)
-    console.log('[TipTap] Injected editor styles')
   }
-
-  // Debug: Check if CSS file was loaded
-  const stylesheets = Array.from(document.styleSheets)
-  const hasTiptapCSS = stylesheets.some(sheet => {
-    try {
-      return Array.from(sheet.cssRules || []).some(rule =>
-        rule.cssText?.includes('.tiptap-editor h1')
-      )
-    } catch { return false }
-  })
-  console.log('[TipTap] CSS file loaded:', hasTiptapCSS)
 }
 
 // =============================================================================
-// Reusable Tailwind Class Constants
+// Styles
 // =============================================================================
 
-const ICON_SIZE = 'w-[18px] h-[18px]'
-const TOOLBAR_BUTTON = 'h-7 w-7 p-0 flex-shrink-0'
-const TOOLBAR_DIVIDER = 'w-px h-6 bg-gray-300 mx-1 flex-shrink-0'
+const styles = {
+  icon: {
+    width: '18px',
+    height: '18px',
+  } as CSSProperties,
+  iconSmall: {
+    width: '12px',
+    height: '12px',
+  } as CSSProperties,
+  toolbarButton: {
+    height: '28px',
+    width: '28px',
+    padding: 0,
+    flexShrink: 0,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '4px',
+    transition: 'background-color 0.15s',
+    border: 'none',
+    cursor: 'pointer',
+    backgroundColor: 'transparent',
+  } as CSSProperties,
+  toolbarButtonActive: {
+    backgroundColor: 'var(--theme-elevation-200)',
+  } as CSSProperties,
+  toolbarDivider: {
+    width: '1px',
+    height: '24px',
+    backgroundColor: 'var(--theme-elevation-300)',
+    margin: '0 4px',
+    flexShrink: 0,
+  } as CSSProperties,
+  dropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    marginTop: '4px',
+    backgroundColor: 'var(--theme-bg)',
+    border: '1px solid var(--theme-elevation-200)',
+    borderRadius: '6px',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+    zIndex: 50,
+    minWidth: '160px',
+  } as CSSProperties,
+  dropdownItem: {
+    width: '100%',
+    padding: '8px 12px',
+    textAlign: 'left',
+    fontSize: '14px',
+    transition: 'background-color 0.15s',
+    display: 'flex',
+    alignItems: 'center',
+    border: 'none',
+    backgroundColor: 'transparent',
+    cursor: 'pointer',
+  } as CSSProperties,
+  dropdownLabel: {
+    padding: '4px 12px',
+    fontSize: '12px',
+    color: 'var(--theme-elevation-500)',
+    fontWeight: 500,
+  } as CSSProperties,
+  dropdownSeparator: {
+    height: '1px',
+    backgroundColor: 'var(--theme-elevation-200)',
+    margin: '4px 0',
+  } as CSSProperties,
+  linkPopover: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    marginTop: '4px',
+    backgroundColor: 'var(--theme-bg)',
+    border: '1px solid var(--theme-elevation-200)',
+    borderRadius: '6px',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+    zIndex: 50,
+    padding: '12px',
+    width: '320px',
+  } as CSSProperties,
+  input: {
+    width: '100%',
+    padding: '8px 12px',
+    border: '1px solid var(--theme-elevation-300)',
+    borderRadius: '6px',
+    fontSize: '14px',
+    outline: 'none',
+  } as CSSProperties,
+  buttonPrimary: {
+    padding: '6px 12px',
+    backgroundColor: 'var(--theme-elevation-900)',
+    color: 'var(--theme-bg)',
+    fontSize: '14px',
+    borderRadius: '6px',
+    border: 'none',
+    cursor: 'pointer',
+  } as CSSProperties,
+  buttonSecondary: {
+    padding: '6px 12px',
+    color: 'var(--theme-elevation-600)',
+    fontSize: '14px',
+    borderRadius: '6px',
+    border: 'none',
+    backgroundColor: 'transparent',
+    cursor: 'pointer',
+  } as CSSProperties,
+  fieldContainer: {
+    // puck-field class
+  } as CSSProperties,
+  label: {
+    display: 'block',
+    fontSize: '14px',
+    fontWeight: 500,
+    color: 'var(--theme-elevation-700)',
+    marginBottom: '8px',
+  } as CSSProperties,
+  editorWrapper: {
+    border: '1px solid var(--theme-elevation-200)',
+    borderRadius: '8px',
+    backgroundColor: 'var(--theme-bg)',
+    overflow: 'hidden',
+  } as CSSProperties,
+  toolbar: {
+    borderBottom: '1px solid var(--theme-elevation-200)',
+    backgroundColor: 'var(--theme-elevation-50)',
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: '4px',
+    padding: '8px',
+  } as CSSProperties,
+  editorContent: {
+    minHeight: '200px',
+    backgroundColor: 'var(--theme-bg)',
+  } as CSSProperties,
+  sourceTextarea: {
+    width: '100%',
+    minHeight: '200px',
+    padding: '16px',
+    fontFamily: 'monospace',
+    fontSize: '14px',
+    border: 'none',
+    resize: 'vertical',
+    outline: 'none',
+  } as CSSProperties,
+  fontSizeGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '4px',
+    padding: '0 8px 8px',
+  } as CSSProperties,
+  fontSizeButton: {
+    padding: '6px 8px',
+    fontSize: '12px',
+    borderRadius: '4px',
+    border: '1px solid var(--theme-elevation-200)',
+    backgroundColor: 'transparent',
+    cursor: 'pointer',
+    textAlign: 'center',
+    transition: 'background-color 0.15s',
+  } as CSSProperties,
+  customSizeInput: {
+    width: '64px',
+    padding: '4px 8px',
+    fontSize: '14px',
+    border: '1px solid var(--theme-elevation-200)',
+    borderRadius: '4px',
+    outline: 'none',
+  } as CSSProperties,
+  customSizeSelect: {
+    padding: '4px',
+    fontSize: '14px',
+    border: '1px solid var(--theme-elevation-200)',
+    borderRadius: '4px',
+    outline: 'none',
+  } as CSSProperties,
+  customSizeApply: {
+    padding: '4px 8px',
+    fontSize: '12px',
+    backgroundColor: 'var(--theme-elevation-900)',
+    color: 'var(--theme-bg)',
+    borderRadius: '4px',
+    border: 'none',
+    cursor: 'pointer',
+  } as CSSProperties,
+  sourceButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    borderRadius: '4px',
+    transition: 'background-color 0.15s',
+    fontSize: '12px',
+    height: '28px',
+    padding: '0 8px',
+    gap: '4px',
+    flexShrink: 0,
+    border: 'none',
+    cursor: 'pointer',
+    backgroundColor: 'transparent',
+  } as CSSProperties,
+  loadingState: {
+    minHeight: '200px',
+    padding: '16px',
+    color: 'var(--theme-elevation-400)',
+  } as CSSProperties,
+  // Color picker styles
+  colorPickerContainer: {
+    padding: '12px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+    minWidth: '240px',
+  } as CSSProperties,
+  colorPickerRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  } as CSSProperties,
+  colorPickerInput: {
+    width: '36px',
+    height: '36px',
+    padding: 0,
+    border: '1px solid var(--theme-elevation-200)',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    flexShrink: 0,
+  } as CSSProperties,
+  colorPickerHexInput: {
+    flex: 1,
+    height: '36px',
+    padding: '0 10px',
+    fontSize: '13px',
+    fontFamily: 'monospace',
+    border: '1px solid var(--theme-elevation-200)',
+    borderRadius: '6px',
+    backgroundColor: 'var(--theme-input-bg)',
+    color: 'var(--theme-elevation-800)',
+    outline: 'none',
+  } as CSSProperties,
+  colorPickerPreview: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '6px',
+    border: '1px solid var(--theme-elevation-200)',
+    flexShrink: 0,
+    position: 'relative',
+    overflow: 'hidden',
+  } as CSSProperties,
+  colorPickerCheckerboard: {
+    position: 'absolute',
+    inset: 0,
+    backgroundImage:
+      'linear-gradient(45deg, #d0d0d0 25%, transparent 25%), linear-gradient(-45deg, #d0d0d0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #d0d0d0 75%), linear-gradient(-45deg, transparent 75%, #d0d0d0 75%)',
+    backgroundSize: '8px 8px',
+    backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px',
+    backgroundColor: '#f0f0f0',
+  } as CSSProperties,
+  colorPickerOverlay: {
+    position: 'absolute',
+    inset: 0,
+  } as CSSProperties,
+  colorPickerOpacitySection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  } as CSSProperties,
+  colorPickerOpacityHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  } as CSSProperties,
+  colorPickerOpacityLabel: {
+    fontSize: '11px',
+    color: 'var(--theme-elevation-500)',
+  } as CSSProperties,
+  colorPickerOpacityValue: {
+    fontSize: '11px',
+    fontFamily: 'monospace',
+    color: 'var(--theme-elevation-500)',
+  } as CSSProperties,
+  colorPickerOpacitySlider: {
+    position: 'relative',
+    height: '10px',
+    borderRadius: '5px',
+    overflow: 'hidden',
+    border: '1px solid var(--theme-elevation-200)',
+  } as CSSProperties,
+  colorPickerOpacityInputRange: {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0,
+    cursor: 'pointer',
+    margin: 0,
+  } as CSSProperties,
+  colorPickerOpacityThumb: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: '4px',
+    backgroundColor: 'white',
+    border: '1px solid var(--theme-elevation-400)',
+    borderRadius: '2px',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
+    pointerEvents: 'none',
+  } as CSSProperties,
+  colorPickerPresetsLabel: {
+    fontSize: '11px',
+    color: 'var(--theme-elevation-500)',
+    marginBottom: '4px',
+  } as CSSProperties,
+  colorPickerPresetsGrid: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '4px',
+  } as CSSProperties,
+  colorPickerPresetButton: {
+    width: '22px',
+    height: '22px',
+    padding: 0,
+    borderRadius: '4px',
+    cursor: 'pointer',
+    border: '1px solid var(--theme-elevation-200)',
+    outline: 'none',
+    transition: 'transform 0.1s',
+  } as CSSProperties,
+  colorPickerPresetButtonSelected: {
+    width: '22px',
+    height: '22px',
+    padding: 0,
+    borderRadius: '4px',
+    cursor: 'pointer',
+    border: '2px solid var(--theme-elevation-800)',
+    outline: '2px solid var(--theme-elevation-200)',
+    outlineOffset: '1px',
+  } as CSSProperties,
+  colorPickerThemeButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    width: '100%',
+    padding: '8px',
+    border: '1px solid var(--theme-elevation-200)',
+    borderRadius: '6px',
+    backgroundColor: 'transparent',
+    cursor: 'pointer',
+    fontSize: '13px',
+    color: 'var(--theme-elevation-700)',
+    transition: 'background-color 0.15s',
+  } as CSSProperties,
+  colorPickerThemeSwatch: {
+    width: '20px',
+    height: '20px',
+    borderRadius: '4px',
+    border: '1px solid var(--theme-elevation-300)',
+    flexShrink: 0,
+    background: 'linear-gradient(135deg, #fff 50%, #1f2937 50%)',
+  } as CSSProperties,
+}
 
 // =============================================================================
 // Types
@@ -192,57 +537,64 @@ const FontSize = Extension.create({
 })
 
 // =============================================================================
-// Color Palette - Organized by Category
+// Color Utilities
 // =============================================================================
 
-// Special "inherit" color means remove any color styling, inherit from parent
-const THEME_COLOR = { label: 'Theme (Auto)', value: 'inherit' }
+/**
+ * Validates and normalizes a hex color string
+ */
+function normalizeHex(hex: string): string {
+  let clean = hex.replace(/^#/, '')
+  if (clean.length === 3) {
+    clean = clean.split('').map(c => c + c).join('')
+  }
+  if (!/^[0-9A-Fa-f]{6}$/.test(clean)) {
+    return ''
+  }
+  return `#${clean.toLowerCase()}`
+}
 
-const COLOR_CATEGORIES = [
-  {
-    label: 'Brand',
-    colors: [
-      { hex: '#2563eb', label: 'Blue 600' },
-      { hex: '#3b82f6', label: 'Blue 500' },
-      { hex: '#60a5fa', label: 'Blue 400' },
-      { hex: '#0d9488', label: 'Teal 600' },
-    ],
-  },
-  {
-    label: 'Grays',
-    colors: [
-      { hex: '#000000', label: 'Black' },
-      { hex: '#374151', label: 'Gray 700' },
-      { hex: '#6b7280', label: 'Gray 500' },
-      { hex: '#9ca3af', label: 'Gray 400' },
-      { hex: '#ffffff', label: 'White' },
-    ],
-  },
-  {
-    label: 'Colors',
-    colors: [
-      { hex: '#dc2626', label: 'Red' },
-      { hex: '#ea580c', label: 'Orange' },
-      { hex: '#f59e0b', label: 'Amber' },
-      { hex: '#16a34a', label: 'Green' },
-      { hex: '#0891b2', label: 'Cyan' },
-      { hex: '#7c3aed', label: 'Violet' },
-      { hex: '#db2777', label: 'Pink' },
-    ],
-  },
-]
+/**
+ * Converts hex + opacity to rgba CSS string
+ */
+function hexToRgba(hex: string, opacity: number): string {
+  const clean = hex.replace(/^#/, '')
+  const r = parseInt(clean.substring(0, 2), 16)
+  const g = parseInt(clean.substring(2, 4), 16)
+  const b = parseInt(clean.substring(4, 6), 16)
+  return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`
+}
 
-// Highlight colors (background)
-const HIGHLIGHT_COLORS = [
-  { hex: '#fef08a', label: 'Yellow' },
-  { hex: '#bbf7d0', label: 'Green' },
-  { hex: '#bfdbfe', label: 'Blue' },
-  { hex: '#fecaca', label: 'Red' },
-  { hex: '#e9d5ff', label: 'Purple' },
-  { hex: '#fed7aa', label: 'Orange' },
-]
+/**
+ * Parses a color string (hex or rgba) and returns hex + opacity
+ */
+function parseColor(color: string | undefined): { hex: string; opacity: number } {
+  if (!color) return { hex: '#000000', opacity: 100 }
 
-// Font size options - expanded preset sizes
+  // Handle rgba
+  const rgbaMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/)
+  if (rgbaMatch) {
+    const r = parseInt(rgbaMatch[1], 10)
+    const g = parseInt(rgbaMatch[2], 10)
+    const b = parseInt(rgbaMatch[3], 10)
+    const a = rgbaMatch[4] ? parseFloat(rgbaMatch[4]) : 1
+    const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
+    return { hex, opacity: Math.round(a * 100) }
+  }
+
+  // Handle hex
+  const normalized = normalizeHex(color)
+  if (normalized) {
+    return { hex: normalized, opacity: 100 }
+  }
+
+  return { hex: '#000000', opacity: 100 }
+}
+
+// =============================================================================
+// Font Sizes
+// =============================================================================
+
 const FONT_SIZES = [
   { label: 'XS', value: '0.75rem', px: '12px' },
   { label: 'Small', value: '0.875rem', px: '14px' },
@@ -255,11 +607,10 @@ const FONT_SIZES = [
   { label: '4XL', value: '3rem', px: '48px' },
 ]
 
-// Font size units for custom input
 const FONT_SIZE_UNITS = ['px', 'rem', 'em'] as const
 
 // =============================================================================
-// Standalone UI Components (no external dependencies)
+// UI Components
 // =============================================================================
 
 function ToolbarButton({
@@ -267,26 +618,25 @@ function ToolbarButton({
   isActive,
   title,
   children,
-  className = '',
 }: {
   onClick: () => void
   isActive?: boolean
   title: string
   children: React.ReactNode
-  className?: string
 }) {
+  const [hovered, setHovered] = useState(false)
   return (
     <button
       type="button"
       onClick={onClick}
       title={title}
-      className={cn(
-        'inline-flex items-center justify-center rounded transition-colors',
-        TOOLBAR_BUTTON,
-        isActive && 'bg-gray-200',
-        !isActive && 'bg-transparent',
-        className
-      )}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        ...styles.toolbarButton,
+        ...(isActive ? styles.toolbarButtonActive : {}),
+        ...(hovered && !isActive ? { backgroundColor: 'var(--theme-elevation-100)' } : {}),
+      }}
     >
       {children}
     </button>
@@ -305,20 +655,17 @@ function ToolbarDropdown({
   isActive?: boolean
 }) {
   const [isOpen, setIsOpen] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const close = useCallback(() => setIsOpen(false), [])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      // Don't close if a color input has focus (native color picker popup is open)
-      // The native picker is rendered outside our DOM, so clicks in it would
-      // otherwise trigger a close since they're not contained in dropdownRef
       const activeElement = document.activeElement
       if (activeElement?.tagName === 'INPUT' && (activeElement as HTMLInputElement).type === 'color') {
         return
       }
-
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false)
       }
@@ -328,22 +675,23 @@ function ToolbarDropdown({
   }, [])
 
   return (
-    <div ref={dropdownRef} className="relative flex-shrink-0">
+    <div ref={dropdownRef} style={{ position: 'relative', flexShrink: 0 }}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         title={title}
-        className={cn(
-          'inline-flex items-center justify-center rounded transition-colors',
-          TOOLBAR_BUTTON,
-          isActive && 'bg-gray-200',
-          !isActive && 'bg-transparent'
-        )}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          ...styles.toolbarButton,
+          ...(isActive ? styles.toolbarButtonActive : {}),
+          ...(hovered && !isActive ? { backgroundColor: 'var(--theme-elevation-100)' } : {}),
+        }}
       >
         {trigger}
       </button>
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[160px]">
+        <div style={styles.dropdown}>
           {typeof children === 'function' ? children(close) : children}
         </div>
       )}
@@ -354,21 +702,21 @@ function ToolbarDropdown({
 function DropdownItem({
   onClick,
   children,
-  className = '',
 }: {
   onClick: () => void
   children: React.ReactNode
-  className?: string
 }) {
+  const [hovered, setHovered] = useState(false)
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`
-        w-full px-3 py-2 text-left text-sm hover:bg-gray-100 transition-colors
-        flex items-center
-        ${className}
-      `}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        ...styles.dropdownItem,
+        ...(hovered ? { backgroundColor: 'var(--theme-elevation-100)' } : {}),
+      }}
     >
       {children}
     </button>
@@ -376,15 +724,193 @@ function DropdownItem({
 }
 
 function DropdownLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="px-3 py-1 text-xs text-gray-500 font-medium">
-      {children}
-    </div>
-  )
+  return <div style={styles.dropdownLabel}>{children}</div>
 }
 
 function DropdownSeparator() {
-  return <div className="h-px bg-gray-200 my-1" />
+  return <div style={styles.dropdownSeparator} />
+}
+
+// =============================================================================
+// Tiptap Color Picker Component
+// =============================================================================
+
+interface TiptapColorPickerProps {
+  currentColor: string | undefined
+  onColorChange: (color: string | null) => void
+  onClose: () => void
+  showOpacity?: boolean
+  mode?: 'text' | 'highlight'
+}
+
+function TiptapColorPicker({
+  currentColor,
+  onColorChange,
+  onClose,
+  showOpacity = true,
+  mode = 'text',
+}: TiptapColorPickerProps) {
+  const theme = useTheme()
+  const presets = theme.colorPresets
+  const parsed = parseColor(currentColor)
+
+  const [hex, setHex] = useState(parsed.hex)
+  const [hexInput, setHexInput] = useState(parsed.hex)
+  const [opacity, setOpacity] = useState(parsed.opacity)
+  const [hoverTheme, setHoverTheme] = useState(false)
+
+  // Apply color to editor (converts to rgba if opacity < 100)
+  const applyColor = useCallback((h: string, o: number) => {
+    if (o < 100) {
+      onColorChange(hexToRgba(h, o))
+    } else {
+      onColorChange(h)
+    }
+  }, [onColorChange])
+
+  const handleColorInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newHex = e.target.value
+    setHex(newHex)
+    setHexInput(newHex)
+    applyColor(newHex, opacity)
+  }, [opacity, applyColor])
+
+  const handleHexInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value
+    setHexInput(input)
+    const normalized = normalizeHex(input)
+    if (normalized) {
+      setHex(normalized)
+      applyColor(normalized, opacity)
+    }
+  }, [opacity, applyColor])
+
+  const handleHexInputBlur = useCallback(() => {
+    setHexInput(hex)
+  }, [hex])
+
+  const handleOpacityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newOpacity = parseInt(e.target.value, 10)
+    setOpacity(newOpacity)
+    applyColor(hex, newOpacity)
+  }, [hex, applyColor])
+
+  const handlePresetClick = useCallback((preset: { hex: string; label: string }) => {
+    setHex(preset.hex)
+    setHexInput(preset.hex)
+    setOpacity(100)
+    applyColor(preset.hex, 100)
+    onClose()
+  }, [applyColor, onClose])
+
+  const handleClearColor = useCallback(() => {
+    onColorChange(null)
+    onClose()
+  }, [onColorChange, onClose])
+
+  const previewColor = hexToRgba(hex, opacity)
+
+  return (
+    <div style={styles.colorPickerContainer as CSSProperties}>
+      {/* Theme/Auto color option */}
+      <button
+        type="button"
+        onClick={handleClearColor}
+        onMouseEnter={() => setHoverTheme(true)}
+        onMouseLeave={() => setHoverTheme(false)}
+        style={{
+          ...styles.colorPickerThemeButton,
+          ...(hoverTheme ? { backgroundColor: 'var(--theme-elevation-50)' } : {}),
+        }}
+      >
+        <span style={styles.colorPickerThemeSwatch} />
+        {mode === 'text' ? 'Theme Color (Auto)' : 'Remove Highlight'}
+      </button>
+
+      {/* Color picker row: native picker + hex input + preview */}
+      <div style={styles.colorPickerRow}>
+        <input
+          type="color"
+          value={hex}
+          onChange={handleColorInputChange}
+          style={styles.colorPickerInput}
+          title="Pick a color"
+        />
+        <input
+          type="text"
+          value={hexInput}
+          onChange={handleHexInputChange}
+          onBlur={handleHexInputBlur}
+          placeholder="#000000"
+          style={styles.colorPickerHexInput}
+        />
+        <div
+          style={styles.colorPickerPreview as CSSProperties}
+          title={`${hex} at ${opacity}% opacity`}
+        >
+          <div style={styles.colorPickerCheckerboard as CSSProperties} />
+          <div style={{ ...styles.colorPickerOverlay as CSSProperties, backgroundColor: previewColor }} />
+        </div>
+      </div>
+
+      {/* Opacity slider */}
+      {showOpacity && (
+        <div style={styles.colorPickerOpacitySection as CSSProperties}>
+          <div style={styles.colorPickerOpacityHeader}>
+            <label style={styles.colorPickerOpacityLabel}>Opacity</label>
+            <span style={styles.colorPickerOpacityValue}>{opacity}%</span>
+          </div>
+          <div style={styles.colorPickerOpacitySlider as CSSProperties}>
+            <div style={styles.colorPickerCheckerboard as CSSProperties} />
+            <div
+              style={{
+                ...styles.colorPickerOverlay as CSSProperties,
+                background: `linear-gradient(to right, transparent 0%, ${hex} 100%)`,
+              }}
+            />
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={opacity}
+              onChange={handleOpacityChange}
+              style={styles.colorPickerOpacityInputRange as CSSProperties}
+            />
+            <div
+              style={{
+                ...styles.colorPickerOpacityThumb as CSSProperties,
+                left: `calc(${opacity}% - 2px)`,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Preset swatches */}
+      {presets.length > 0 && (
+        <div>
+          <div style={styles.colorPickerPresetsLabel}>Presets</div>
+          <div style={styles.colorPickerPresetsGrid}>
+            {presets.map((preset) => {
+              const isSelected = hex.toLowerCase() === preset.hex.toLowerCase()
+              return (
+                <button
+                  key={preset.hex}
+                  type="button"
+                  onClick={() => handlePresetClick(preset)}
+                  style={{
+                    ...(isSelected ? styles.colorPickerPresetButtonSelected : styles.colorPickerPresetButton),
+                    backgroundColor: preset.hex,
+                  }}
+                  title={preset.label}
+                />
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 function LinkPopover({
@@ -416,12 +942,9 @@ function LinkPopover({
   if (!isOpen) return null
 
   return (
-    <div
-      ref={popoverRef}
-      className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 p-3 w-80"
-    >
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">URL</label>
+    <div ref={popoverRef} style={styles.linkPopover}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <label style={{ fontSize: '14px', fontWeight: 500, color: 'var(--theme-elevation-700)' }}>URL</label>
         <input
           type="text"
           placeholder="https://example.com"
@@ -436,9 +959,9 @@ function LinkPopover({
               }
             }
           }}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          style={styles.input}
         />
-        <div className="flex gap-2">
+        <div style={{ display: 'flex', gap: '8px' }}>
           <button
             type="button"
             onClick={() => {
@@ -447,7 +970,7 @@ function LinkPopover({
                 setUrl('')
               }
             }}
-            className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+            style={styles.buttonPrimary}
           >
             Add Link
           </button>
@@ -457,7 +980,7 @@ function LinkPopover({
               onRemoveLink()
               setUrl('')
             }}
-            className="px-3 py-1.5 text-gray-600 text-sm hover:bg-gray-100 rounded-md"
+            style={styles.buttonSecondary}
           >
             Remove Link
           </button>
@@ -469,28 +992,19 @@ function LinkPopover({
 
 // =============================================================================
 // Tiptap Extensions Factory
-// Each editor instance needs its own extension instances to avoid
-// "duplicate extension" warnings when multiple editors exist on the page.
 // =============================================================================
 
 function createTiptapExtensions() {
   return [
     StarterKit.configure({
-      heading: {
-        levels: [1, 2, 3, 4, 5, 6],
-      },
-      // Enable strikethrough from StarterKit
+      heading: { levels: [1, 2, 3, 4, 5, 6] },
       strike: {},
-      // Horizontal rule and hard break are included by default
       horizontalRule: {},
       hardBreak: {},
-      // Configure StarterKit's built-in Link and Underline (v3+)
-      // These are included in StarterKit by default, so we configure them here
-      // instead of adding duplicate extensions
       link: {
         openOnClick: false,
         HTMLAttributes: {
-          class: 'text-blue-600 underline',
+          style: 'color: var(--theme-elevation-700); text-decoration: underline;',
         },
       },
       underline: {},
@@ -501,9 +1015,7 @@ function createTiptapExtensions() {
     }),
     TextStyle,
     Color,
-    Highlight.configure({
-      multicolor: true,
-    }),
+    Highlight.configure({ multicolor: true }),
     FontSize,
     Superscript,
     Subscript,
@@ -519,12 +1031,9 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
   const [showSource, setShowSource] = useState(false)
   const [sourceContent, setSourceContent] = useState(value)
 
-  // Use a ref to store the onChange callback to avoid recreating the editor
-  // when onChange reference changes (which happens on every Puck render)
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
 
-  // Stable onUpdate handler that uses the ref
   const handleUpdate = useCallback(({ editor }: { editor: ReturnType<typeof useEditor> }) => {
     if (editor) {
       const html = editor.getHTML()
@@ -532,15 +1041,13 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
     }
   }, [])
 
-  // Note: The "duplicate extension" warning is a known Tiptap limitation with React Strict Mode
-  // and multiple editor instances. It doesn't affect functionality.
-  // See: https://github.com/ueberdosis/tiptap/issues/2890
   const editor = useEditor({
     extensions: createTiptapExtensions(),
     content: value,
     editorProps: {
       attributes: {
         class: 'tiptap-editor focus:outline-none min-h-[200px] p-4',
+        style: 'min-height: 200px; padding: 16px; outline: none;',
       },
     },
     onUpdate: handleUpdate,
@@ -548,9 +1055,6 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
     shouldRerenderOnTransaction: false,
   })
 
-  // Use useEditorState to subscribe to formatting state changes.
-  // This is the official TipTap pattern for reactive toolbar buttons with shouldRerenderOnTransaction: false.
-  // See: https://tiptap.dev/docs/guides/performance
   const formattingState = useEditorState({
     editor,
     selector: ({ editor: e }) => {
@@ -581,43 +1085,12 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
     },
   })
 
-  // Debug: Log editor element info
-  useEffect(() => {
-    if (editor) {
-      const editorEl = editor.view.dom as HTMLElement
-      console.log('[TipTap Debug] Editor element:', {
-        className: editorEl.className,
-        tagName: editorEl.tagName,
-        hasH1: editorEl.querySelector('h1') !== null,
-      })
-      // Check computed styles on a heading if present
-      const h1 = editorEl.querySelector('h1')
-      if (h1) {
-        const styles = window.getComputedStyle(h1)
-        console.log('[TipTap Debug] H1 computed styles:', {
-          fontSize: styles.fontSize,
-          fontWeight: styles.fontWeight,
-        })
-      }
-      const ul = editorEl.querySelector('ul')
-      if (ul) {
-        const styles = window.getComputedStyle(ul)
-        console.log('[TipTap Debug] UL computed styles:', {
-          listStyleType: styles.listStyleType,
-          paddingLeft: styles.paddingLeft,
-        })
-      }
-    }
-  }, [editor, value])
-
   if (!editor) {
     return (
       <div className="puck-field">
-        {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-        )}
-        <div className="border rounded-lg overflow-hidden bg-white">
-          <div className="min-h-[200px] p-4 text-gray-400">Loading editor...</div>
+        {label && <label style={styles.label}>{label}</label>}
+        <div style={styles.editorWrapper}>
+          <div style={styles.loadingState}>Loading editor...</div>
         </div>
       </div>
     )
@@ -635,72 +1108,46 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
 
   return (
     <div className="puck-field">
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-      )}
+      {label && <label style={styles.label}>{label}</label>}
 
-      <div className="border rounded-lg bg-white">
-        {/* Toolbar - wraps into multiple rows on narrow screens */}
+      <div style={styles.editorWrapper}>
+        {/* Toolbar */}
         {!readOnly && (
-          <div className="border-b bg-gray-50 flex items-center flex-wrap gap-1 p-2">
+          <div style={styles.toolbar}>
             {/* Text Style */}
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              isActive={formattingState?.isBold}
-              title="Bold"
-            >
-              <Bold className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} isActive={formattingState?.isBold} title="Bold">
+              <Bold style={styles.icon} />
             </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              isActive={formattingState?.isItalic}
-              title="Italic"
-            >
-              <Italic className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} isActive={formattingState?.isItalic} title="Italic">
+              <Italic style={styles.icon} />
             </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleUnderline().run()}
-              isActive={formattingState?.isUnderline}
-              title="Underline"
-            >
-              <Underline className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} isActive={formattingState?.isUnderline} title="Underline">
+              <Underline style={styles.icon} />
             </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleStrike().run()}
-              isActive={formattingState?.isStrike}
-              title="Strikethrough"
-            >
-              <Strikethrough className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} isActive={formattingState?.isStrike} title="Strikethrough">
+              <Strikethrough style={styles.icon} />
             </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleSuperscript().run()}
-              isActive={formattingState?.isSuperscript}
-              title="Superscript"
-            >
-              <SuperscriptIcon className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleSuperscript().run()} isActive={formattingState?.isSuperscript} title="Superscript">
+              <SuperscriptIcon style={styles.icon} />
             </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleSubscript().run()}
-              isActive={formattingState?.isSubscript}
-              title="Subscript"
-            >
-              <SubscriptIcon className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleSubscript().run()} isActive={formattingState?.isSubscript} title="Subscript">
+              <SubscriptIcon style={styles.icon} />
             </ToolbarButton>
 
-            <div className={TOOLBAR_DIVIDER} />
+            <div style={styles.toolbarDivider} />
 
             {/* Headings Dropdown */}
             <ToolbarDropdown
               trigger={
-                <span className="flex items-center gap-0.5">
-                  {formattingState?.isH1 ? <Heading1 className={ICON_SIZE} /> :
-                   formattingState?.isH2 ? <Heading2 className={ICON_SIZE} /> :
-                   formattingState?.isH3 ? <Heading3 className={ICON_SIZE} /> :
-                   formattingState?.isH4 ? <Heading4 className={ICON_SIZE} /> :
-                   formattingState?.isH5 ? <Heading5 className={ICON_SIZE} /> :
-                   formattingState?.isH6 ? <Heading6 className={ICON_SIZE} /> :
-                   <Pilcrow className={ICON_SIZE} />}
-                  <ChevronDown className="w-3 h-3" />
+                <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  {formattingState?.isH1 ? <Heading1 style={styles.icon} /> :
+                   formattingState?.isH2 ? <Heading2 style={styles.icon} /> :
+                   formattingState?.isH3 ? <Heading3 style={styles.icon} /> :
+                   formattingState?.isH4 ? <Heading4 style={styles.icon} /> :
+                   formattingState?.isH5 ? <Heading5 style={styles.icon} /> :
+                   formattingState?.isH6 ? <Heading6 style={styles.icon} /> :
+                   <Pilcrow style={styles.icon} />}
+                  <ChevronDown style={styles.iconSmall} />
                 </span>
               }
               title="Text Type"
@@ -709,49 +1156,46 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
               {(close) => (
                 <>
                   <DropdownItem onClick={() => { editor.chain().focus().setParagraph().run(); close(); }}>
-                    <Pilcrow className={cn(ICON_SIZE, 'mr-2')} />
+                    <Pilcrow style={{ ...styles.icon, marginRight: '8px' }} />
                     Paragraph
                   </DropdownItem>
                   <DropdownSeparator />
                   <DropdownItem onClick={() => { editor.chain().focus().toggleHeading({ level: 1 }).run(); close(); }}>
-                    <Heading1 className={cn(ICON_SIZE, 'mr-2')} />
-                    <span className="font-bold text-lg">Heading 1</span>
+                    <Heading1 style={{ ...styles.icon, marginRight: '8px' }} />
+                    <span style={{ fontWeight: 700, fontSize: '18px' }}>Heading 1</span>
                   </DropdownItem>
                   <DropdownItem onClick={() => { editor.chain().focus().toggleHeading({ level: 2 }).run(); close(); }}>
-                    <Heading2 className={cn(ICON_SIZE, 'mr-2')} />
-                    <span className="font-bold text-base">Heading 2</span>
+                    <Heading2 style={{ ...styles.icon, marginRight: '8px' }} />
+                    <span style={{ fontWeight: 700, fontSize: '16px' }}>Heading 2</span>
                   </DropdownItem>
                   <DropdownItem onClick={() => { editor.chain().focus().toggleHeading({ level: 3 }).run(); close(); }}>
-                    <Heading3 className={cn(ICON_SIZE, 'mr-2')} />
-                    <span className="font-semibold">Heading 3</span>
+                    <Heading3 style={{ ...styles.icon, marginRight: '8px' }} />
+                    <span style={{ fontWeight: 600 }}>Heading 3</span>
                   </DropdownItem>
                   <DropdownItem onClick={() => { editor.chain().focus().toggleHeading({ level: 4 }).run(); close(); }}>
-                    <Heading4 className={cn(ICON_SIZE, 'mr-2')} />
-                    <span className="font-semibold text-sm">Heading 4</span>
+                    <Heading4 style={{ ...styles.icon, marginRight: '8px' }} />
+                    <span style={{ fontWeight: 600, fontSize: '14px' }}>Heading 4</span>
                   </DropdownItem>
                   <DropdownItem onClick={() => { editor.chain().focus().toggleHeading({ level: 5 }).run(); close(); }}>
-                    <Heading5 className={cn(ICON_SIZE, 'mr-2')} />
-                    <span className="font-semibold text-xs">Heading 5</span>
+                    <Heading5 style={{ ...styles.icon, marginRight: '8px' }} />
+                    <span style={{ fontWeight: 600, fontSize: '12px' }}>Heading 5</span>
                   </DropdownItem>
                   <DropdownItem onClick={() => { editor.chain().focus().toggleHeading({ level: 6 }).run(); close(); }}>
-                    <Heading6 className={cn(ICON_SIZE, 'mr-2')} />
-                    <span className="font-semibold text-xs text-gray-600">Heading 6</span>
+                    <Heading6 style={{ ...styles.icon, marginRight: '8px' }} />
+                    <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--theme-elevation-600)' }}>Heading 6</span>
                   </DropdownItem>
                 </>
               )}
             </ToolbarDropdown>
 
-            <div className={TOOLBAR_DIVIDER} />
+            <div style={styles.toolbarDivider} />
 
             {/* Font Size */}
-            <ToolbarDropdown
-              trigger={<ALargeSmall className={ICON_SIZE} />}
-              title="Font Size"
-            >
+            <ToolbarDropdown trigger={<ALargeSmall style={styles.icon} />} title="Font Size">
               {(close) => (
                 <>
                   <DropdownLabel>Presets</DropdownLabel>
-                  <div className="grid grid-cols-3 gap-1 px-2 pb-2">
+                  <div style={styles.fontSizeGrid}>
                     {FONT_SIZES.map((size) => (
                       <button
                         key={size.label}
@@ -764,7 +1208,7 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
                           }
                           close()
                         }}
-                        className="px-2 py-1.5 text-xs rounded border border-gray-200 hover:bg-gray-100 transition-colors text-center"
+                        style={styles.fontSizeButton}
                         title={size.px}
                       >
                         {size.label}
@@ -772,15 +1216,15 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
                     ))}
                   </div>
                   <DropdownSeparator />
-                  <div className="p-2">
+                  <div style={{ padding: '8px' }}>
                     <DropdownLabel>Custom Size</DropdownLabel>
-                    <div className="flex items-center gap-1 mt-1">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
                       <input
                         type="number"
                         placeholder="16"
                         min="8"
                         max="200"
-                        className="w-16 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        style={styles.customSizeInput}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             const input = e.target as HTMLInputElement
@@ -793,10 +1237,7 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
                           }
                         }}
                       />
-                      <select
-                        className="px-1 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        defaultValue="px"
-                      >
+                      <select style={styles.customSizeSelect} defaultValue="px">
                         {FONT_SIZE_UNITS.map((unit) => (
                           <option key={unit} value={unit}>{unit}</option>
                         ))}
@@ -814,7 +1255,7 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
                             close()
                           }
                         }}
-                        className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                        style={styles.customSizeApply}
                       >
                         Apply
                       </button>
@@ -824,73 +1265,41 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
               )}
             </ToolbarDropdown>
 
-            <div className={TOOLBAR_DIVIDER} />
+            <div style={styles.toolbarDivider} />
 
             {/* Lists */}
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleBulletList().run()}
-              isActive={formattingState?.isBulletList}
-              title="Bullet List"
-            >
-              <List className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} isActive={formattingState?.isBulletList} title="Bullet List">
+              <List style={styles.icon} />
             </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              isActive={formattingState?.isOrderedList}
-              title="Numbered List"
-            >
-              <ListOrdered className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} isActive={formattingState?.isOrderedList} title="Numbered List">
+              <ListOrdered style={styles.icon} />
             </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              isActive={formattingState?.isBlockquote}
-              title="Blockquote"
-            >
-              <Quote className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} isActive={formattingState?.isBlockquote} title="Blockquote">
+              <Quote style={styles.icon} />
             </ToolbarButton>
 
-            <div className={TOOLBAR_DIVIDER} />
+            <div style={styles.toolbarDivider} />
 
             {/* Alignment */}
-            <ToolbarButton
-              onClick={() => editor.chain().focus().setTextAlign('left').run()}
-              isActive={formattingState?.isAlignLeft}
-              title="Align Left"
-            >
-              <AlignLeft className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('left').run()} isActive={formattingState?.isAlignLeft} title="Align Left">
+              <AlignLeft style={styles.icon} />
             </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().setTextAlign('center').run()}
-              isActive={formattingState?.isAlignCenter}
-              title="Align Center"
-            >
-              <AlignCenter className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('center').run()} isActive={formattingState?.isAlignCenter} title="Align Center">
+              <AlignCenter style={styles.icon} />
             </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().setTextAlign('right').run()}
-              isActive={formattingState?.isAlignRight}
-              title="Align Right"
-            >
-              <AlignRight className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('right').run()} isActive={formattingState?.isAlignRight} title="Align Right">
+              <AlignRight style={styles.icon} />
             </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-              isActive={formattingState?.isAlignJustify}
-              title="Justify"
-            >
-              <AlignJustify className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('justify').run()} isActive={formattingState?.isAlignJustify} title="Justify">
+              <AlignJustify style={styles.icon} />
             </ToolbarButton>
 
-            <div className={TOOLBAR_DIVIDER} />
+            <div style={styles.toolbarDivider} />
 
             {/* Link */}
-            <div className="relative flex-shrink-0">
-              <ToolbarButton
-                onClick={() => setIsLinkPopoverOpen(!isLinkPopoverOpen)}
-                isActive={formattingState?.isLink}
-                title="Add Link"
-              >
-                <Link className={ICON_SIZE} />
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <ToolbarButton onClick={() => setIsLinkPopoverOpen(!isLinkPopoverOpen)} isActive={formattingState?.isLink} title="Add Link">
+                <Link style={styles.icon} />
               </ToolbarButton>
               <LinkPopover
                 isOpen={isLinkPopoverOpen}
@@ -901,115 +1310,58 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
             </div>
 
             {/* Text Color */}
-            <ToolbarDropdown
-              trigger={<Palette className={ICON_SIZE} />}
-              title="Text Color"
-            >
+            <ToolbarDropdown trigger={<Palette style={styles.icon} />} title="Text Color">
               {(close) => (
-                <>
-                  {/* Theme (Auto) option - removes color to inherit from parent */}
-                  <DropdownItem onClick={() => { editor.chain().focus().unsetColor().run(); close(); }}>
-                    <span
-                      className="w-4 h-4 rounded mr-2 border border-gray-300 flex-shrink-0"
-                      style={{ background: 'linear-gradient(135deg, #fff 50%, #1f2937 50%)' }}
-                    />
-                    {THEME_COLOR.label}
-                  </DropdownItem>
-                  <DropdownSeparator />
-
-                  {/* Color categories */}
-                  {COLOR_CATEGORIES.map((category) => (
-                    <div key={category.label}>
-                      <DropdownLabel>{category.label}</DropdownLabel>
-                      <div className="grid grid-cols-5 gap-1 px-2 pb-2">
-                        {category.colors.map((color) => (
-                          <button
-                            key={color.hex}
-                            type="button"
-                            onClick={() => { editor.chain().focus().setColor(color.hex).run(); close(); }}
-                            className="w-6 h-6 rounded border border-gray-200 cursor-pointer transition-transform duration-100 hover:scale-110"
-                            style={{ backgroundColor: color.hex }}
-                            title={color.label}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-
-                  <DropdownSeparator />
-
-                  {/* Custom color picker */}
-                  <div className="p-2">
-                    <DropdownLabel>Custom Color</DropdownLabel>
-                    <div className="flex items-center gap-2 mt-1">
-                      <input
-                        type="color"
-                        // Show current text color (default to black if none set)
-                        value={editor.getAttributes('textStyle').color || '#000000'}
-                        // onInput fires while dragging - apply color live
-                        onInput={(e) => editor.chain().focus().setColor((e.target as HTMLInputElement).value).run()}
-                        // Let dropdown close naturally via click-outside detection
-                        className="w-8 h-8 p-0 border border-gray-200 rounded cursor-pointer"
-                        title="Pick any color"
-                      />
-                      <span className="text-xs text-gray-500">Pick any color</span>
-                    </div>
-                  </div>
-                </>
+                <TiptapColorPicker
+                  currentColor={editor.getAttributes('textStyle').color}
+                  onColorChange={(color) => {
+                    if (color) {
+                      editor.chain().focus().setColor(color).run()
+                    } else {
+                      editor.chain().focus().unsetColor().run()
+                    }
+                  }}
+                  onClose={close}
+                  showOpacity={true}
+                  mode="text"
+                />
               )}
             </ToolbarDropdown>
 
-            {/* Highlight (background color) */}
-            <ToolbarDropdown
-              trigger={<Highlighter className={ICON_SIZE} />}
-              title="Highlight"
-              isActive={formattingState?.isHighlight}
-            >
+            {/* Highlight */}
+            <ToolbarDropdown trigger={<Highlighter style={styles.icon} />} title="Highlight" isActive={formattingState?.isHighlight}>
               {(close) => (
-                <>
-                  <div className="grid grid-cols-3 gap-1 p-2">
-                    {HIGHLIGHT_COLORS.map((color) => (
-                      <button
-                        key={color.hex}
-                        type="button"
-                        onClick={() => { editor.chain().focus().toggleHighlight({ color: color.hex }).run(); close(); }}
-                        className="w-8 h-6 rounded border border-gray-200 cursor-pointer transition-transform duration-100 hover:scale-110"
-                        style={{ backgroundColor: color.hex }}
-                        title={color.label}
-                      />
-                    ))}
-                  </div>
-                  <DropdownItem onClick={() => { editor.chain().focus().unsetHighlight().run(); close(); }}>
-                    Remove Highlight
-                  </DropdownItem>
-                </>
+                <TiptapColorPicker
+                  currentColor={editor.getAttributes('highlight').color}
+                  onColorChange={(color) => {
+                    if (color) {
+                      editor.chain().focus().setHighlight({ color }).run()
+                    } else {
+                      editor.chain().focus().unsetHighlight().run()
+                    }
+                  }}
+                  onClose={close}
+                  showOpacity={true}
+                  mode="highlight"
+                />
               )}
             </ToolbarDropdown>
 
-            <div className={TOOLBAR_DIVIDER} />
+            <div style={styles.toolbarDivider} />
 
             {/* Insert Elements */}
-            <ToolbarButton
-              onClick={() => editor.chain().focus().setHorizontalRule().run()}
-              title="Horizontal Rule"
-            >
-              <Minus className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Horizontal Rule">
+              <Minus style={styles.icon} />
             </ToolbarButton>
-            <ToolbarButton
-              onClick={() => editor.chain().focus().setHardBreak().run()}
-              title="Hard Break (Shift+Enter)"
-            >
-              <CornerDownLeft className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().setHardBreak().run()} title="Hard Break (Shift+Enter)">
+              <CornerDownLeft style={styles.icon} />
             </ToolbarButton>
 
-            <div className={TOOLBAR_DIVIDER} />
+            <div style={styles.toolbarDivider} />
 
             {/* Clear Formatting */}
-            <ToolbarButton
-              onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
-              title="Clear Formatting"
-            >
-              <RemoveFormatting className={ICON_SIZE} />
+            <ToolbarButton onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()} title="Clear Formatting">
+              <RemoveFormatting style={styles.icon} />
             </ToolbarButton>
 
             {/* View Source */}
@@ -1025,13 +1377,12 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
                 setShowSource(!showSource)
               }}
               title="View Source"
-              className={cn(
-                'inline-flex items-center rounded transition-colors text-xs h-7 px-2 gap-1 flex-shrink-0',
-                showSource && 'bg-gray-200',
-                !showSource && 'bg-transparent'
-              )}
+              style={{
+                ...styles.sourceButton,
+                ...(showSource ? styles.toolbarButtonActive : {}),
+              }}
             >
-              <Code className={ICON_SIZE} />
+              <Code style={styles.icon} />
               Source
             </button>
           </div>
@@ -1045,11 +1396,11 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
               setSourceContent(e.target.value)
               onChange(e.target.value)
             }}
-            className="w-full min-h-[200px] p-4 font-mono text-sm border-0 resize-y focus:outline-none"
+            style={styles.sourceTextarea}
             placeholder="Edit HTML source..."
           />
         ) : (
-          <div className="min-h-[200px] bg-white">
+          <div style={styles.editorContent}>
             <EditorContent editor={editor} />
           </div>
         )}
@@ -1058,17 +1409,12 @@ function TiptapFieldInner({ value, onChange, label, readOnly }: TiptapFieldProps
   )
 }
 
-// Memoize the component to prevent unnecessary re-renders when Puck updates state.
-// This is critical for maintaining editor focus during typing.
 export const TiptapField = memo(TiptapFieldInner)
 
 // =============================================================================
 // Field Configuration Factory
 // =============================================================================
 
-/**
- * Creates a Puck field configuration for Tiptap rich text editing
- */
 export function createTiptapField(config: {
   label?: string
   placeholder?: string
