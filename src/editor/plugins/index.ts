@@ -3,9 +3,9 @@
  *
  * @example
  * ```tsx
- * import { PuckEditorCore, headingAnalyzer } from '@delmaredigital/payload-puck/editor'
+ * import { PuckEditor, headingAnalyzer } from '@delmaredigital/payload-puck/editor'
  *
- * <PuckEditorCore plugins={[headingAnalyzer]} />
+ * <PuckEditor plugins={[headingAnalyzer]} />
  * ```
  */
 

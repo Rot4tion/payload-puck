@@ -27,7 +27,7 @@ export interface PuckAdminConfig {
 
   /**
    * Button label text
-   * @default 'Edit with Puck'
+   * @default 'Visual Editor'
    */
   buttonLabel?: string
 

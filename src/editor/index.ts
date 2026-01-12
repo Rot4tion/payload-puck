@@ -3,10 +3,10 @@
 /**
  * @delmaredigital/payload-puck/editor
  *
- * Full-featured Puck editor components with dynamic loading,
- * unsaved changes tracking, and theme-aware preview.
+ * Full-featured Puck editor component with built-in page-tree support,
+ * dynamic loading, unsaved changes tracking, and theme-aware preview.
  *
- * @example
+ * @example Basic usage
  * ```tsx
  * 'use client'
  *
@@ -21,35 +21,48 @@
  *       config={editorConfig}
  *       pageTitle={page.title}
  *       pageSlug={page.slug}
+ *       apiEndpoint="/api/puck/pages"
  *       backUrl="/admin/pages"
- *       layoutStyles={{
- *         default: { background: '#fff', isDark: false },
- *         dark: { background: '#1a1a1a', isDark: true },
- *       }}
- *       onSaveSuccess={(data) => console.log('Saved!', data)}
- *       onSaveError={(error) => console.error('Error:', error)}
  *     />
  *   )
  * }
  * ```
+ *
+ * @example With page-tree integration
+ * ```tsx
+ * <PuckEditor
+ *   pageId={page.id}
+ *   initialData={page.puckData}
+ *   config={editorConfig}
+ *   pageTitle={page.title}
+ *   pageSlug={page.slug}
+ *   apiEndpoint="/api/puck/pages"
+ *   hasPageTree={true}
+ *   folder={page.folder}
+ *   pageSegment={page.pageSegment}
+ * />
+ * ```
  */
 
-// Main editor components
-export { PuckEditor, type PuckEditorProps } from './PuckEditor.client'
-export { PuckEditorCore, type PuckEditorCoreProps } from './PuckEditorCore.client'
+// Main editor component
+export { PuckEditor, type PuckEditorProps } from './PuckEditor.js'
 
 // Ready-to-use editor page component (auto-fetches page data from route params)
-export { PuckEditorView, type PuckEditorViewProps } from '../admin/PuckEditorView'
+export { PuckEditorView, type PuckEditorViewProps } from '../admin/PuckEditorView.js'
 
-// Sub-components
-export { HeaderActions, type HeaderActionsProps } from './components/HeaderActions'
-export { IframeWrapper, type IframeWrapperProps, type LayoutStyle } from './components/IframeWrapper'
-export { LoadingState, type LoadingStateProps } from './components/LoadingState'
-export { PreviewModal, type PreviewModalProps } from './components/PreviewModal'
-export { VersionHistory, type VersionHistoryProps, type PageVersion } from './components/VersionHistory'
+// Sub-components for advanced customization
+export { HeaderActions, type HeaderActionsProps } from './components/HeaderActions.js'
+export { IframeWrapper, type IframeWrapperProps, type LayoutStyle } from './components/IframeWrapper.js'
+export { LoadingState, type LoadingStateProps } from './components/LoadingState.js'
+export { PreviewModal, type PreviewModalProps } from './components/PreviewModal.js'
+export { VersionHistory, type VersionHistoryProps, type PageVersion } from './components/VersionHistory.js'
+
+// Utilities
+export { injectPageTreeFields } from './utils/injectPageTreeFields.js'
+export { detectPageTree, hasPageTreeFields } from './utils/detectPageTree.js'
 
 // Hooks
-export { useUnsavedChanges, type UseUnsavedChangesReturn } from './hooks/useUnsavedChanges'
+export { useUnsavedChanges, type UseUnsavedChangesReturn } from './hooks/useUnsavedChanges.js'
 
 // Plugins
-export { headingAnalyzer } from './plugins'
+export { headingAnalyzer } from './plugins/index.js'

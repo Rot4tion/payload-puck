@@ -110,7 +110,7 @@ export const EditWithPuckCell: React.FC<DefaultCellComponentProps> = ({
       onMouseLeave={(e) => {
         e.currentTarget.style.backgroundColor = '#2563eb'
       }}
-      title="Edit with Puck Visual Editor"
+      title="Visual Editor"
     >
       <PuckIcon size={14} />
       <span>Visual Editor</span>

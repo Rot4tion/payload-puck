@@ -5,6 +5,79 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-01-12
+
+### Breaking Changes
+
+#### Unified PuckEditor Component
+
+The editor component architecture has been simplified to a single `PuckEditor` component with built-in page-tree support.
+
+**Removed exports:**
+- `PuckEditorCore` - Use `PuckEditor` instead
+- `PuckEditorClient` - Use `PuckEditor` instead
+
+**Migration:**
+
+```typescript
+// Before
+import { PuckEditorCore } from '@delmaredigital/payload-puck/editor'
+// or
+import { PuckEditorClient } from '@delmaredigital/payload-puck/client'
+
+// After
+import { PuckEditor } from '@delmaredigital/payload-puck/editor'
+// or
+import { PuckEditor } from '@delmaredigital/payload-puck/client'
+```
+
+The new `PuckEditor` component:
+- Accepts `config` prop directly OR reads from `PuckConfigProvider` context
+- Includes built-in page-tree support via `hasPageTree` prop
+- Handles all save/publish functionality
+- Includes dynamic loading to prevent hydration mismatches
+
+### Added
+
+#### Page-Tree Props on PuckEditor
+
+For custom editor UIs using page-tree integration:
+
+```typescript
+<PuckEditor
+  config={editorConfig}
+  pageId={page.id}
+  initialData={page.puckData}
+  pageTitle={page.title}
+  pageSlug={page.slug}
+  apiEndpoint="/api/puck/pages"
+  hasPageTree={true}           // Enable page-tree fields
+  folder={page.folder}         // Initial folder ID
+  pageSegment={page.pageSegment} // Initial page segment
+/>
+```
+
+#### New Utility Exports
+
+Page-tree field injection utilities exported from `/client` and `/editor`:
+
+```typescript
+import { injectPageTreeFields, hasPageTreeFields } from '@delmaredigital/payload-puck/client'
+
+// Check if config already has page-tree fields
+if (!hasPageTreeFields(config)) {
+  config = injectPageTreeFields(config)
+}
+```
+
+### Changed
+
+- `PuckEditor` now supports both direct `config` prop and context-based config
+- `PuckEditorView` (RSC) now renders `PuckEditor` directly instead of `PuckEditorClient`
+- Page-tree field injection moved into `PuckEditor` component
+
+---
+
 ## [0.3.0] - 2026-01-09
 
 ### Breaking Changes

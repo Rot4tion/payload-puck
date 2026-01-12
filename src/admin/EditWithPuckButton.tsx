@@ -24,7 +24,7 @@ export interface EditWithPuckButtonProps {
   editorPathPattern?: string
   /**
    * Button label
-   * @default 'Edit with Puck'
+   * @default 'Visual Editor'
    */
   label?: string
   /**
@@ -87,7 +87,7 @@ export const EditWithPuckButton: UIFieldClientComponent = (props) => {
 
   // Extract custom props passed via field config
   const customProps = (props as any)?.field?.custom as EditWithPuckButtonProps | undefined
-  const label = customProps?.label || 'Edit with Puck'
+  const label = customProps?.label || 'Visual Editor'
   const iconOnly = customProps?.iconOnly || false
   const collection = customProps?.collectionSlug || collectionSlug || 'pages'
 
@@ -158,7 +158,7 @@ export function EditWithPuckLink({
   id,
   collectionSlug = 'pages',
   editorPathPattern,
-  label = 'Edit with Puck',
+  label = 'Visual Editor',
   iconOnly = false,
 }: EditWithPuckButtonProps & { id: string; adminRoute?: string }) {
   // Build path - prefer admin view by default

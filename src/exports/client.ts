@@ -1,21 +1,22 @@
 'use client'
 
 /**
- * Client component exports for Payload admin
+ * Client component exports for Payload admin and custom UIs
  *
  * These components require 'use client' and can use React hooks.
- * Import via: '@delmaredigital/payload-puck/client#ComponentName'
+ * Import via: '@delmaredigital/payload-puck/client'
  *
  * @example
  * ```tsx
- * import { PuckConfigProvider, usePuckConfig } from '@delmaredigital/payload-puck/client'
+ * import { PuckEditor, PuckConfigProvider } from '@delmaredigital/payload-puck/client'
  * ```
  */
 
-// Views
-export { PuckEditorClient } from '../views/PuckEditorClient.js'
+// Main editor component
+export { PuckEditor } from '../editor/PuckEditor.js'
+export type { PuckEditorProps } from '../editor/PuckEditor.js'
 
-// Context
+// Context (optional - for multi-editor apps sharing config)
 export { PuckConfigProvider, usePuckConfig } from '../views/PuckConfigContext.js'
 export type { PuckConfigProviderProps, PuckConfigContextValue } from '../views/PuckConfigContext.js'
 
@@ -23,6 +24,6 @@ export type { PuckConfigProviderProps, PuckConfigContextValue } from '../views/P
 export { EditWithPuckButton, EditWithPuckLink } from '../admin/EditWithPuckButton.js'
 export type { EditWithPuckButtonProps } from '../admin/EditWithPuckButton.js'
 
-// Re-export editor components that might be useful
-export { PuckEditorCore } from '../editor/PuckEditorCore.client.js'
-export type { PuckEditorCoreProps } from '../editor/PuckEditorCore.client.js'
+// Page-tree utilities
+export { injectPageTreeFields } from '../editor/utils/injectPageTreeFields.js'
+export { detectPageTree, hasPageTreeFields } from '../editor/utils/detectPageTree.js'

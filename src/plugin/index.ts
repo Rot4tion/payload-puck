@@ -67,7 +67,7 @@ function generatePuckEditField(
 ): Field {
   const {
     editorPathPattern = '/pages/{id}/edit',
-    buttonLabel = 'Edit with Puck',
+    buttonLabel = 'Visual Editor',
     buttonPosition, // undefined = main area (default), 'sidebar' = sidebar
   } = adminConfig
 

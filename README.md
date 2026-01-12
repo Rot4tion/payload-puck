@@ -72,7 +72,7 @@ This automatically:
 
 ### Step 2: Provide Puck Configuration
 
-Wrap your app with `PuckConfigProvider` to supply the Puck configuration. This is required because Puck configs contain React components that cannot be serialized from server to client.
+Wrap your app with `PuckConfigProvider` to supply the Puck configuration. This makes the config available to the editor via React context.
 
 ```typescript
 // app/(app)/layout.tsx (covers both admin and frontend)
@@ -91,6 +91,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   )
 }
 ```
+
+> **Tip:** `PuckConfigProvider` also accepts `layouts` and `theme` props. See [Layouts](#layouts) and [Theming](#theming) sections.
+
+> **Note:** For custom editor UIs (outside Payload admin), you can also pass the config directly to `PuckEditor` instead of using the context provider.
 
 ### Step 3: Create a Frontend Route
 
@@ -487,6 +491,42 @@ export const puckConfig = extendConfig({
 
 > **Note:** Use `fullConfig` from `/config/editor` for extending the editor. For server-side rendering, use `baseConfig` from `/config`.
 
+### Using Custom Config with Provider
+
+After creating your custom config, pass it to `PuckConfigProvider`:
+
+```typescript
+// components/admin/PuckProvider.tsx
+'use client'
+import { PuckConfigProvider } from '@delmaredigital/payload-puck/client'
+import { puckConfig } from '@/puck/config.editor'
+import { siteLayouts } from '@/lib/puck-layouts'
+
+export default function PuckProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <PuckConfigProvider config={puckConfig} layouts={siteLayouts}>
+      {children}
+    </PuckConfigProvider>
+  )
+}
+```
+
+**For Payload admin**, register the provider in your Payload config:
+
+```typescript
+// payload.config.ts
+export default buildConfig({
+  admin: {
+    components: {
+      providers: ['@/components/admin/PuckProvider'],
+    },
+  },
+  // ...
+})
+```
+
+This is the recommended pattern for Payload apps. The provider wraps only the admin UI, keeping your frontend layout separate.
+
 ### Available Field Factories
 
 | Factory | Description |
@@ -625,7 +665,7 @@ The plugin checks if your collection has a `pageSegment` field (page-tree's sign
 2. **Page Segment** - Edit the page's URL segment
 3. **Slug Preview** - See the computed slug (folder path + segment)
 
-### Configuration
+### Plugin Configuration
 
 ```typescript
 createPuckPlugin({
@@ -641,6 +681,27 @@ createPuckPlugin({
   // Explicitly disable
   pageTreeIntegration: false,
 })
+```
+
+### Custom Editor UI
+
+For custom editor implementations outside Payload admin, use the `hasPageTree` prop:
+
+```typescript
+import { PuckEditor } from '@delmaredigital/payload-puck/client'
+import { editorConfig } from '@delmaredigital/payload-puck/config/editor'
+
+<PuckEditor
+  config={editorConfig}
+  pageId={page.id}
+  initialData={page.puckData}
+  pageTitle={page.title}
+  pageSlug={page.slug}
+  apiEndpoint="/api/puck/pages"
+  hasPageTree={true}
+  folder={page.folder}
+  pageSegment={page.pageSegment}
+/>
 ```
 
 ### Performance
@@ -775,7 +836,8 @@ See the JSDoc in `@delmaredigital/payload-puck/api` for usage examples.
 | `@delmaredigital/payload-puck/plugin` | `createPuckPlugin` |
 | `@delmaredigital/payload-puck/config` | `baseConfig`, `createConfig()`, `extendConfig()` |
 | `@delmaredigital/payload-puck/config/editor` | `editorConfig` for editing |
-| `@delmaredigital/payload-puck/client` | `PuckConfigProvider`, `usePuckConfig`, client components |
+| `@delmaredigital/payload-puck/client` | `PuckEditor`, `PuckConfigProvider`, page-tree utilities |
+| `@delmaredigital/payload-puck/editor` | `PuckEditor`, `HeaderActions`, editor hooks |
 | `@delmaredigital/payload-puck/rsc` | `PuckEditorView` for Payload admin views |
 | `@delmaredigital/payload-puck/render` | `PageRenderer`, `HybridPageRenderer` |
 | `@delmaredigital/payload-puck/fields` | Custom Puck fields and CSS helpers |

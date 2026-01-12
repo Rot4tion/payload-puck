@@ -16,6 +16,7 @@ import {
   Eye,
 } from 'lucide-react'
 import { VersionHistory } from './VersionHistory.js'
+import { VERSION } from '../../version.js'
 
 // Create usePuck hook for accessing editor state
 const usePuck = createUsePuck()
@@ -372,7 +373,7 @@ export const HeaderActions = memo(function HeaderActions({
       </button>
 
       {/* Version indicator for debugging */}
-      <span style={styles.versionText}>v0.3.0</span>
+      <span style={styles.versionText}>v{VERSION}</span>
 
       {/* Document status badge */}
       {documentStatus && (() => {

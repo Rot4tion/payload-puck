@@ -6,10 +6,10 @@ import type { MergeConfigOptions } from '../types'
  *
  * @example
  * ```typescript
- * import { mergeConfigs, baseConfig } from '@delmaredigital/payload-puck/config'
+ * import { extendConfig, fullConfig } from '@delmaredigital/payload-puck/config/editor'
  *
- * const customConfig = mergeConfigs({
- *   base: baseConfig,
+ * const puckConfig = extendConfig({
+ *   base: fullConfig,
  *   components: {
  *     CustomHero: myHeroConfig,
  *   },

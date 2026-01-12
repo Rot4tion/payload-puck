@@ -1,6 +1,6 @@
 {
   "name": "@delmaredigital/payload-puck",
-  "version": "0.3.1",
+  "version": "0.3.2-dev.4",
   "description": "Puck visual page builder plugin for Payload CMS",
   "type": "module",
   "license": "MIT",
@@ -58,16 +58,22 @@
     "./fields": {
       "import": "./dist/fields/index.js",
       "types": "./dist/fields/index.d.ts"
+    },
+    "./editor": {
+      "import": "./dist/editor/index.js",
+      "types": "./dist/editor/index.d.ts"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "dev-publish": "pnpm build && pnpm version prerelease --preid=dev && pnpm publish --registry http://localhost:4873",
+    "dev-publish": "pnpm version prerelease --preid=dev && pnpm build && pnpm publish --registry http://localhost:4873",
+    "generate-version": "node scripts/generate-version.js",
+    "prebuild": "pnpm generate-version",
     "build": "tsc && pnpm copy:css",
     "copy:css": "cp src/fields/*.css dist/fields/ 2>/dev/null || true",
-    "dev": "tsc --watch",
+    "dev": "pnpm generate-version && tsc --watch",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "prepublishOnly": "pnpm build"

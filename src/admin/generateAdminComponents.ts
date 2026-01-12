@@ -17,7 +17,7 @@ export interface AdminComponentsConfig {
   editorPathPattern?: string
   /**
    * Button label text
-   * @default 'Edit with Puck'
+   * @default 'Visual Editor'
    */
   buttonLabel?: string
   /**
@@ -53,7 +53,7 @@ export function generatePuckEditField(config: AdminComponentsConfig = {}): Field
   const {
     collectionSlug = 'pages',
     editorPathPattern = '/pages/{id}/edit',
-    buttonLabel = 'Edit with Puck',
+    buttonLabel = 'Visual Editor',
     buttonPosition = 'sidebar',
   } = config
 

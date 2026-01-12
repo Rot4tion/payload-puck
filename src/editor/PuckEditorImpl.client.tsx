@@ -55,7 +55,7 @@ interface PuckDataWithMeta extends Data {
   }
 }
 
-export interface PuckEditorCoreProps {
+export interface PuckEditorImplProps {
   /**
    * Page ID for save operations
    */
@@ -164,32 +164,10 @@ export interface PuckEditorCoreProps {
  * - Responsive viewport switching
  * - Custom header actions
  *
- * @example
- * ```tsx
- * 'use client'
- *
- * import { PuckEditorCore } from '@delmaredigital/payload-puck/editor'
- * import { editorConfig } from '@delmaredigital/payload-puck/config/editor'
- *
- * export function PageEditor({ page }) {
- *   return (
- *     <PuckEditorCore
- *       pageId={page.id}
- *       initialData={page.puckData}
- *       config={editorConfig}
- *       pageTitle={page.title}
- *       pageSlug={page.slug}
- *       backUrl="/admin/pages"
- *       layoutStyles={{
- *         default: { background: '#fff', isDark: false },
- *         dark: { background: '#1a1a1a', isDark: true },
- *       }}
- *     />
- *   )
- * }
- * ```
+ * Internal implementation component - use PuckEditor instead.
+ * @internal
  */
-export function PuckEditorCore({
+export function PuckEditorImpl({
   pageId,
   initialData,
   config,
@@ -211,7 +189,7 @@ export function PuckEditorCore({
   onChange: onChangeProp,
   initialStatus,
   theme,
-}: PuckEditorCoreProps) {
+}: PuckEditorImplProps) {
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)

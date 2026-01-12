@@ -10,7 +10,7 @@
 import type { AdminViewProps, Locale } from 'payload'
 import { DefaultTemplate } from '@payloadcms/next/templates'
 import { getVisibleEntities } from '@payloadcms/ui/shared'
-import { PuckEditorClient } from './PuckEditorClient.js'
+import { PuckEditor } from '../editor/PuckEditor.js'
 
 export interface PuckEditorViewProps extends AdminViewProps {
   // Additional props can be passed via plugin config
@@ -164,18 +164,28 @@ export async function PuckEditorView({
           <p>Error: {error}</p>
         </div>
       ) : (
-        <PuckEditorClient
-          pageId={pageId}
-          collection={collection}
-          initialData={initialData}
-          pageTitle={page?.title || 'Untitled'}
-          pageSlug={page?.slug || ''}
-          initialStatus={page?._status}
-          backUrl={backUrl}
-          adminRoute={adminRoute}
-          layouts={layouts}
-          hasPageTree={!!pageTreeConfig}
-        />
+        <div
+          style={{
+            // Take up full available height within the admin template
+            height: 'calc(100vh - 60px)',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <PuckEditor
+            pageId={pageId}
+            initialData={initialData}
+            pageTitle={page?.title || 'Untitled'}
+            pageSlug={page?.slug || ''}
+            apiEndpoint={`/api/puck/${collection}`}
+            initialStatus={page?._status}
+            backUrl={backUrl}
+            layouts={layouts}
+            hasPageTree={!!pageTreeConfig}
+            folder={pageTreeConfig ? (typeof page?.folder === 'object' ? page?.folder?.id : page?.folder) : undefined}
+            pageSegment={pageTreeConfig ? page?.pageSegment : undefined}
+          />
+        </div>
       )}
     </DefaultTemplate>
   )
