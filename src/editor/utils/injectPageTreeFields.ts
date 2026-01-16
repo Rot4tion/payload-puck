@@ -1,6 +1,6 @@
 import type { Config as PuckConfig } from '@puckeditor/core'
 import { createFolderPickerField } from '../../fields/FolderPickerField.js'
-import { createPageSegmentField } from '../../fields/PageSegmentField.js'
+import { createLockedPageSegmentField } from '../../fields/PageSegmentField.js'
 import { createSlugPreviewField } from '../../fields/SlugPreviewField.js'
 
 /**
@@ -14,7 +14,7 @@ export function injectPageTreeFields(config: PuckConfig): PuckConfig {
   // Create page-tree specific fields
   const pageTreeFields = {
     folder: createFolderPickerField({ label: 'Folder' }),
-    pageSegment: createPageSegmentField({ label: 'Page Segment' }),
+    pageSegment: createLockedPageSegmentField({ label: 'Page Segment' }),
     slug: createSlugPreviewField({
       label: 'URL Slug',
       hint: 'Auto-generated from folder + page segment',

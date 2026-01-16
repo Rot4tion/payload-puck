@@ -129,3 +129,6 @@ export const baseConfig = createConfig(DEFAULT_LAYOUTS)
 // Re-export merge utility and layout helpers
 export { mergeConfigs, mergeConfigs as extendConfig } from './merge'
 export { DEFAULT_LAYOUTS, createLayout, type LayoutDefinition } from '../layouts'
+
+// Re-export server-specific types
+export type { ServerComponentConfig, ServerRootConfig, SlotField } from './types'

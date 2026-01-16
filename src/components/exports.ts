@@ -79,3 +79,9 @@ export { ButtonConfig as ButtonServerConfig } from './interactive/Button.server.
 export { CardConfig as CardServerConfig } from './interactive/Card.server.js'
 export { DividerConfig as DividerServerConfig } from './interactive/Divider.server.js'
 export { AccordionConfig as AccordionServerConfig } from './interactive/Accordion.server.js'
+
+// =============================================================================
+// Animation Components
+// =============================================================================
+
+export { AnimatedWrapper, type AnimatedWrapperProps } from './AnimatedWrapper.js'

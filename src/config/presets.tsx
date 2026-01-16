@@ -48,7 +48,7 @@ import {
 import { createBackgroundField } from '../fields/BackgroundField.js'
 import { lockedSlugField, lockedHomepageField } from '../fields/LockedField.js'
 import { createFolderPickerField } from '../fields/FolderPickerField.js'
-import { createPageSegmentField } from '../fields/PageSegmentField.js'
+import { createLockedPageSegmentField } from '../fields/PageSegmentField.js'
 import { createSlugPreviewField } from '../fields/SlugPreviewField.js'
 
 /**
@@ -148,7 +148,7 @@ export const pageTreeRoot = {
     },
     // Page-tree specific fields
     folder: createFolderPickerField({ label: 'Folder' }),
-    pageSegment: createPageSegmentField({ label: 'Page Segment' }),
+    pageSegment: createLockedPageSegmentField({ label: 'Page Segment' }),
     slug: createSlugPreviewField({
       label: 'URL Slug',
       hint: 'Auto-generated from folder + page segment',

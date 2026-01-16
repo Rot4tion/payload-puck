@@ -5,6 +5,113 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2026-01-17
+
+This patch release fixes editor state synchronization and adds quality-of-life improvements for page-tree integration and TypeScript.
+
+### Added
+
+#### Payload Fields Sync to Editor Root Props
+
+When loading a page in the editor, Payload document fields are now properly synced to Puck's root.props:
+
+- `isHomepage`, `title`, `slug`, `pageLayout` now load correctly
+- SEO fields (`meta.title`, `meta.description`, `meta.image`) are synced
+- Page-tree fields (`folder`, `pageSegment`) are synced
+
+New exports:
+```typescript
+import { mapPayloadFieldsToRootProps } from '@delmaredigital/payload-puck/api'
+
+// Reverse-map Payload fields back to root.props format
+const rootProps = mapPayloadFieldsToRootProps(payloadDocument)
+```
+
+#### Locked PageSegmentField for Page-Tree
+
+The page segment field is now locked by default in page-tree mode to prevent accidental URL changes:
+
+- Lock icon appears in the field header
+- Click to unlock and enable editing
+- Warning message displayed when unlocked: "Changing may break existing links"
+- Matches behavior of slug and isHomepage fields
+
+New exports:
+```typescript
+import {
+  LockedPageSegmentField,
+  createLockedPageSegmentField,
+} from '@delmaredigital/payload-puck/fields'
+
+// For custom page-tree implementations
+const field = createLockedPageSegmentField({
+  label: 'Page Segment',
+  warningMessage: 'Changing may break existing links',
+})
+```
+
+#### Server Component Type Safety
+
+New TypeScript types for server-only Puck configs reduce field definition pressure:
+
+```typescript
+import type { ServerComponentConfig, SlotField } from '@delmaredigital/payload-puck/config'
+
+// No fields required for components without slots
+export const ButtonConfig: ServerComponentConfig<ButtonProps> = {
+  label: 'Button',
+  render: ({ text }) => <button>{text}</button>,
+}
+
+// Only slot fields needed for container components
+export const SectionConfig: ServerComponentConfig<SectionProps> = {
+  fields: { content: { type: 'slot' } },
+  render: ({ content: Content }) => <section><Content /></section>,
+}
+```
+
+#### HybridPageRenderer Improvements
+
+Type safety improvements for hybrid rendering:
+
+- Generic type parameter for typed `legacyRenderer` blocks
+- `toHybridPageData()` helper to convert Payload's generic JSON types
+- `HybridPageDataInput` type for loose input
+
+```typescript
+import {
+  HybridPageRenderer,
+  toHybridPageData,
+  type HybridPageDataInput,
+} from '@delmaredigital/payload-puck/render'
+
+// Typed legacy blocks
+<HybridPageRenderer<NonNullable<Page['layout']>>
+  page={toHybridPageData(page)}
+  config={config}
+  legacyRenderer={(blocks) => <RenderBlocks blocks={blocks} />}
+/>
+```
+
+#### AnimatedWrapper Export
+
+`AnimatedWrapper` component is now exported from the components entry point:
+
+```typescript
+import { AnimatedWrapper } from '@delmaredigital/payload-puck/components'
+```
+
+### Fixed
+
+- **Editor field sync**: Fields like `isHomepage`, `title`, `pageLayout` now correctly load from Payload documents into the editor root.props
+- **Editor stylesheet passthrough**: `editorStylesheets` from plugin config now properly passed to `PuckEditor`
+
+### Changed
+
+- Page-tree integration now uses `createLockedPageSegmentField()` instead of `createPageSegmentField()` by default
+
+---
+
 ## [0.6.0] - 2026-01-15
 
 This release significantly enhances AI-assisted page generation and introduces a rewritten RichText field implementation.

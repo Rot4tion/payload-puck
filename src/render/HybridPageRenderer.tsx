@@ -32,6 +32,16 @@ import { PageRenderer, type PageRendererProps } from './PageRenderer'
 import type { ReactNode } from 'react'
 
 /**
+ * Loose input type that accepts Payload's generic JSON field types.
+ * Use with `toHybridPageData()` to convert to `HybridPageData`.
+ */
+export interface HybridPageDataInput {
+  editorVersion?: string | null
+  puckData?: unknown
+  [key: string]: unknown
+}
+
+/**
  * Page data shape for hybrid rendering
  */
 export interface HybridPageData {
@@ -54,7 +64,8 @@ export interface HybridPageData {
   [key: string]: unknown
 }
 
-export interface HybridPageRendererProps extends Omit<PageRendererProps, 'data'> {
+export interface HybridPageRendererProps<TBlocks = unknown[]>
+  extends Omit<PageRendererProps, 'data'> {
   /**
    * Page document containing editorVersion, puckData, and optionally legacy blocks
    */
@@ -64,10 +75,18 @@ export interface HybridPageRendererProps extends Omit<PageRendererProps, 'data'>
    * Render function for legacy Payload blocks.
    * Called when editorVersion is 'legacy' or when puckData is not available.
    *
+   * Use the generic type parameter to get proper typing for your blocks:
+   * @example
+   * ```tsx
+   * <HybridPageRenderer<NonNullable<Page['layout']>>
+   *   legacyRenderer={(blocks) => <RenderBlocks blocks={blocks} />}
+   * />
+   * ```
+   *
    * @param blocks - The legacy blocks array from the page
    * @returns React node to render
    */
-  legacyRenderer: (blocks: unknown[]) => ReactNode
+  legacyRenderer: (blocks: TBlocks) => ReactNode
 
   /**
    * Name of the field containing legacy blocks
@@ -90,7 +109,7 @@ export interface HybridPageRendererProps extends Omit<PageRendererProps, 'data'>
  * 2. If legacy blocks exist → render with legacyRenderer
  * 3. Otherwise → render fallback
  */
-export function HybridPageRenderer({
+export function HybridPageRenderer<TBlocks = unknown[]>({
   page,
   legacyRenderer,
   legacyBlocksField = 'layout',
@@ -99,14 +118,14 @@ export function HybridPageRenderer({
   layouts,
   wrapper,
   className,
-}: HybridPageRendererProps) {
+}: HybridPageRendererProps<TBlocks>) {
   // Check for Puck content
   const puckData = page.puckData as PuckData | null | undefined
   const hasPuckContent =
     puckData?.content && Array.isArray(puckData.content) && puckData.content.length > 0
 
   // Check for legacy content
-  const legacyBlocks = page[legacyBlocksField] as unknown[] | undefined
+  const legacyBlocks = page[legacyBlocksField] as TBlocks | undefined
   const hasLegacyContent = Array.isArray(legacyBlocks) && legacyBlocks.length > 0
 
   // Render Puck pages
@@ -124,9 +143,60 @@ export function HybridPageRenderer({
 
   // Render legacy pages
   if (hasLegacyContent) {
-    return <>{legacyRenderer(legacyBlocks)}</>
+    return <>{legacyRenderer(legacyBlocks as TBlocks)}</>
   }
 
   // Fallback for empty pages
   return <>{fallback}</>
+}
+
+/**
+ * Converts a loosely-typed page object (e.g., from Payload's generated types)
+ * to a properly typed `HybridPageData`.
+ *
+ * Use this when Payload's generated types for JSON fields are too generic
+ * and don't match `HybridPageData`.
+ *
+ * @example
+ * ```tsx
+ * import { HybridPageRenderer, toHybridPageData } from '@delmaredigital/payload-puck/render'
+ *
+ * // page comes from Payload with generic JSON types
+ * const page = await payload.findByID({ collection: 'pages', id })
+ *
+ * <HybridPageRenderer
+ *   page={toHybridPageData(page)}
+ *   config={config}
+ *   legacyRenderer={(blocks) => <BlockRenderer blocks={blocks} />}
+ * />
+ * ```
+ *
+ * @param page - Page object with loosely-typed fields
+ * @returns Properly typed HybridPageData
+ * @throws Error if editorVersion is present but invalid
+ */
+export function toHybridPageData(page: HybridPageDataInput): HybridPageData {
+  const { editorVersion, puckData, ...rest } = page
+
+  // Validate editorVersion if present
+  if (editorVersion !== undefined && editorVersion !== null) {
+    if (editorVersion !== 'legacy' && editorVersion !== 'puck') {
+      throw new Error(
+        `Invalid editorVersion: "${editorVersion}". Expected "legacy", "puck", or undefined.`
+      )
+    }
+  }
+
+  // Validate puckData shape if present (basic check)
+  if (puckData !== undefined && puckData !== null) {
+    if (typeof puckData !== 'object') {
+      throw new Error(`Invalid puckData: expected object, got ${typeof puckData}`)
+    }
+  }
+
+  return {
+    ...rest,
+    editorVersion: editorVersion as HybridPageData['editorVersion'],
+    puckData: puckData as HybridPageData['puckData'],
+  }
 }

@@ -188,5 +188,10 @@ export function injectRichtextStyles() {
 // =============================================================================
 
 export { FolderPickerField, createFolderPickerField } from './FolderPickerField'
-export { PageSegmentField, createPageSegmentField } from './PageSegmentField'
+export {
+  PageSegmentField,
+  createPageSegmentField,
+  LockedPageSegmentField,
+  createLockedPageSegmentField,
+} from './PageSegmentField'
 export { SlugPreviewField, createSlugPreviewField } from './SlugPreviewField'

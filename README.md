@@ -8,6 +8,7 @@ A PayloadCMS plugin for integrating [Puck](https://puckeditor.com) visual page b
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+  - [Adding to Existing Projects](#adding-to-existing-projects)
 - [Styling Setup](#styling-setup)
 - [Core Concepts](#core-concepts)
 - [Components](#components)
@@ -53,7 +54,7 @@ The plugin integrates directly into Payload's admin UI with minimal configuratio
 ### Step 1: Add the Plugin
 
 ```typescript
-// payload.config.ts
+// src/payload.config.ts
 import { buildConfig } from 'payload'
 import { createPuckPlugin } from '@delmaredigital/payload-puck/plugin'
 
@@ -98,6 +99,34 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 > **Tip:** `PuckConfigProvider` also accepts `layouts` and `theme` props. See [Layouts](#layouts) and [Theming](#theming) sections.
 
 > **Note:** For custom editor UIs (outside Payload admin), you can also pass the config directly to `PuckEditor` instead of using the context provider.
+
+**Alternative: Payload Admin Provider (vanilla starter pattern)**
+
+If you're using the vanilla Payload starter structure, you can register the provider via the admin config instead:
+
+```typescript
+// src/payload.config.ts
+export default buildConfig({
+  admin: {
+    components: {
+      providers: ['@/components/admin/PuckProvider'],
+    },
+  },
+  // ...
+})
+```
+
+```typescript
+// src/components/admin/PuckProvider.tsx
+'use client'
+
+import { PuckConfigProvider } from '@delmaredigital/payload-puck/client'
+import { editorConfig } from '@delmaredigital/payload-puck/config/editor'
+
+export default function PuckProvider({ children }: { children: React.ReactNode }) {
+  return <PuckConfigProvider config={editorConfig}>{children}</PuckConfigProvider>
+}
+```
 
 ### Step 3: Create a Frontend Route
 
@@ -180,6 +209,74 @@ export default async function Page({
 - "Edit with Puck" buttons appear in the collection list view
 - The editor runs inside Payload's admin UI with full navigation
 - API endpoints are handled automatically via Payload's endpoint system
+
+### Adding to Existing Projects
+
+> **⚠️ Important:** If you're adding Puck to a project with existing frontend routes, you must update those routes to render Puck content.
+
+When adding Puck to an existing Payload project:
+
+1. ✅ Add the plugin to `payload.config.ts`
+2. ✅ Add `PuckConfigProvider` to your admin layout
+3. ⚠️ **Update your frontend page templates** to render `puckData`
+
+Without step 3, Puck pages will render blank because your existing routes only look for legacy block fields like `layout` or `hero`.
+
+**Option A: Hybrid Rendering (recommended for migration)**
+
+Use `HybridPageRenderer` to support both legacy blocks and Puck pages:
+
+```typescript
+import { HybridPageRenderer } from '@delmaredigital/payload-puck/render'
+import { baseConfig } from '@delmaredigital/payload-puck/config'
+import { LegacyBlockRenderer } from '@/components/LegacyBlockRenderer'
+
+export default async function Page({ params }) {
+  const page = await getPage(params.slug)
+
+  return (
+    <HybridPageRenderer
+      page={page}
+      config={baseConfig}
+      legacyRenderer={(blocks) => <LegacyBlockRenderer blocks={blocks} />}
+    />
+  )
+}
+```
+
+**Option B: Manual Detection**
+
+Add conditional logic to check `editorVersion`:
+
+```typescript
+// Check if page was created with Puck
+const isPuckPage = page.editorVersion === 'puck' && page.puckData?.content?.length > 0
+
+if (isPuckPage) {
+  return <PageRenderer config={baseConfig} data={page.puckData} />
+}
+
+// Fall back to legacy rendering
+return <LegacyBlockRenderer blocks={page.layout} />
+```
+
+**Option C: Custom Components**
+
+If you have custom Puck components (not just the built-in ones), create a client wrapper:
+
+```typescript
+// components/PuckPageRenderer.tsx
+'use client'
+
+import { Render } from '@puckeditor/core'
+import { myCustomConfig } from '@/puck/config'
+
+export function PuckPageRenderer({ data }) {
+  return <Render config={myCustomConfig} data={data} />
+}
+```
+
+Then use this wrapper in your page template instead of `PageRenderer`.
 
 ---
 

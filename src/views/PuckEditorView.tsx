@@ -11,6 +11,7 @@ import type { AdminViewProps, Locale } from 'payload'
 import { DefaultTemplate } from '@payloadcms/next/templates'
 import { getVisibleEntities } from '@payloadcms/ui/shared'
 import { PuckEditor } from '../editor/PuckEditor.js'
+import { mapPayloadFieldsToRootProps } from '../api/utils/mapRootProps.js'
 
 export interface PuckEditorViewProps extends AdminViewProps {
   // Additional props can be passed via plugin config
@@ -91,6 +92,7 @@ export async function PuckEditorView({
   const layouts = (payload.config as any).custom?.puck?.layouts
   const explicitPageTreeConfig = (payload.config as any).custom?.puck?.pageTree
   const aiConfig = (payload.config as any).custom?.puck?.ai
+  const editorStylesheets = (payload.config as any).custom?.puck?.editorStylesheets as string[] | undefined
 
   // Fetch AI prompts from collection if enabled
   let aiExamplePrompts = aiConfig?.examplePrompts || []
@@ -142,21 +144,27 @@ export async function PuckEditorView({
   // Build back URL to collection
   const backUrl = `${adminRoute}/collections/${collection}/${pageId}`
 
-  // Build initial data with page-tree fields if enabled
+  // Build initial data, syncing Payload fields to root.props
   let initialData = page?.puckData || { content: [], root: { props: {} } }
 
-  // If page-tree integration is enabled, merge folder/pageSegment into root.props
-  if (pageTreeConfig && page) {
-    const folderId = typeof page.folder === 'object' ? page.folder?.id : page.folder
+  if (page) {
+    // Map Payload document fields to root.props format
+    // This ensures fields like title, slug, isHomepage, pageLayout are synced
+    const syncedRootProps = mapPayloadFieldsToRootProps(page as Record<string, unknown>)
+
+    // Handle folder ID specially (could be object or string)
+    if (pageTreeConfig && page.folder !== undefined) {
+      const folderId = typeof page.folder === 'object' ? page.folder?.id : page.folder
+      syncedRootProps.folder = folderId || null
+    }
+
     initialData = {
       ...initialData,
       root: {
         ...initialData.root,
         props: {
           ...initialData.root?.props,
-          folder: folderId || null,
-          pageSegment: page.pageSegment || '',
-          slug: page.slug || '',
+          ...syncedRootProps,
         },
       },
     }
@@ -211,6 +219,7 @@ export async function PuckEditorView({
             hasPromptsCollection={!!aiConfig?.promptsCollection}
             hasContextCollection={!!aiConfig?.contextCollection}
             aiComponentInstructions={aiConfig?.componentInstructions}
+            editorStylesheets={editorStylesheets}
           />
         </div>
       )}

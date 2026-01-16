@@ -210,3 +210,44 @@ export function deepMerge(
 
   return target
 }
+
+/**
+ * Map Payload document fields to Puck root.props format
+ *
+ * This is the reverse of mapRootPropsToPayloadFields. It takes a Payload
+ * document and extracts the fields that should be synced to root.props
+ * when loading the editor.
+ *
+ * @param doc - The Payload document
+ * @param customMappings - Optional custom mappings to merge with defaults
+ * @returns Object with root.props field names and values
+ *
+ * @example
+ * ```typescript
+ * const page = { title: 'My Page', isHomepage: true, meta: { title: 'SEO Title' } }
+ * const rootProps = mapPayloadFieldsToRootProps(page)
+ * // Result: { title: 'My Page', isHomepage: true, metaTitle: 'SEO Title' }
+ * ```
+ */
+export function mapPayloadFieldsToRootProps(
+  doc: Record<string, unknown>,
+  customMappings?: RootPropsMapping[]
+): Record<string, unknown> {
+  const mappings = mergeMappings(customMappings)
+  const result: Record<string, unknown> = {}
+
+  for (const mapping of mappings) {
+    // Get value from Payload field (supports dot notation for nested fields)
+    const value = getNestedValue(doc, mapping.to)
+
+    // Skip undefined values
+    if (value === undefined) {
+      continue
+    }
+
+    // Set the value using the root.props field name
+    result[mapping.from] = value
+  }
+
+  return result
+}

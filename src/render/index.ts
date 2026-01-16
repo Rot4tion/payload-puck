@@ -8,8 +8,12 @@
 export { PageRenderer } from './PageRenderer'
 export type { PageRendererProps } from './PageRenderer'
 
-export { HybridPageRenderer } from './HybridPageRenderer'
-export type { HybridPageRendererProps, HybridPageData } from './HybridPageRenderer'
+export { HybridPageRenderer, toHybridPageData } from './HybridPageRenderer'
+export type {
+  HybridPageRendererProps,
+  HybridPageData,
+  HybridPageDataInput,
+} from './HybridPageRenderer'
 
 // Note: PuckEditor has been moved to '@delmaredigital/payload-puck/editor'
 // to avoid RSC import issues with the client-only Puck component

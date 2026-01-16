@@ -41,6 +41,7 @@ export { createPuckApiRoutesVersions } from './createPuckApiRoutesVersions'
 // Utilities
 export {
   mapRootPropsToPayloadFields,
+  mapPayloadFieldsToRootProps,
   DEFAULT_ROOT_PROPS_MAPPINGS,
   setNestedValue,
   getNestedValue,
