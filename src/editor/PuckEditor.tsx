@@ -238,6 +238,30 @@ export interface PuckEditorProps {
    * @default false
    */
   experimentalFullScreenCanvas?: boolean
+
+  // Dark mode props
+
+  /**
+   * Auto-detect dark mode from PayloadCMS admin.
+   * When true (default), dark mode CSS is automatically injected when Payload is in dark mode.
+   * Set to false to disable automatic dark mode detection.
+   * @default true
+   */
+  autoDetectDarkMode?: boolean
+
+  /**
+   * Show the preview dark mode toggle near the viewport switcher.
+   * Allows toggling the preview iframe between light/dark modes independently.
+   * @default true
+   */
+  showPreviewDarkModeToggle?: boolean
+
+  /**
+   * Initial state for the preview dark mode toggle.
+   * Only used when showPreviewDarkModeToggle is true.
+   * @default false (light mode)
+   */
+  initialPreviewDarkMode?: boolean
 }
 
 /**
@@ -325,6 +349,10 @@ export function PuckEditor({
   hasContextCollection = false,
   aiComponentInstructions,
   experimentalFullScreenCanvas = false,
+  // Dark mode props
+  autoDetectDarkMode = true,
+  showPreviewDarkModeToggle = true,
+  initialPreviewDarkMode = false,
 }: PuckEditorProps) {
   // Get config from context as fallback
   const {
@@ -529,6 +557,9 @@ export function PuckEditor({
       hasPromptsCollection={hasPromptsCollection}
       hasContextCollection={hasContextCollection}
       experimentalFullScreenCanvas={experimentalFullScreenCanvas}
+      autoDetectDarkMode={autoDetectDarkMode}
+      showPreviewDarkModeToggle={showPreviewDarkModeToggle}
+      initialPreviewDarkMode={initialPreviewDarkMode}
     />
   )
 }

@@ -226,7 +226,9 @@ const styles = {
     fontWeight: 500,
     backgroundColor: 'transparent',
     border: 'none',
-    borderBottom: '2px solid transparent',
+    borderBottomWidth: '2px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: 'transparent',
     cursor: 'pointer',
     transition: 'color 0.15s, border-color 0.15s',
     color: 'var(--theme-elevation-500)',
@@ -959,9 +961,9 @@ function MediaFieldInner({
                     <div style={styles.dropZone}>
                       <Image style={styles.dropZoneIcon} />
                       <label style={{ cursor: 'pointer' }}>
-                        <button type="button" style={styles.buttonPrimary}>
+                        <span style={styles.buttonPrimary}>
                           Select Image
-                        </button>
+                        </span>
                         <input
                           type="file"
                           accept="image/*"

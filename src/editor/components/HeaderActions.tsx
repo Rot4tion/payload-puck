@@ -16,6 +16,7 @@ import {
   Eye,
 } from 'lucide-react'
 import { VersionHistory } from './VersionHistory.js'
+import { PreviewModeToggle } from './PreviewModeToggle.js'
 import { VERSION } from '../../version.js'
 
 // Create usePuck hook for accessing editor state
@@ -124,6 +125,22 @@ export interface HeaderActionsProps {
    * Handler to dismiss the error message
    */
   onDismissError?: () => void
+
+  // Preview dark mode toggle props
+
+  /**
+   * Whether to show the preview dark mode toggle
+   * @default false
+   */
+  showPreviewDarkModeToggle?: boolean
+  /**
+   * Current state of preview dark mode
+   */
+  previewDarkMode?: boolean
+  /**
+   * Handler for toggling preview dark mode
+   */
+  onPreviewDarkModeChange?: (isDarkMode: boolean) => void
 }
 
 // Shared styles
@@ -348,6 +365,9 @@ export const HeaderActions = memo(function HeaderActions({
   apiEndpoint = '/api/puck/pages',
   saveError,
   onDismissError,
+  showPreviewDarkModeToggle = false,
+  previewDarkMode = false,
+  onPreviewDarkModeChange,
 }: HeaderActionsProps) {
   const appState = usePuck((s) => s.appState)
   const dispatch = usePuck((s) => s.dispatch)
@@ -439,6 +459,15 @@ export const HeaderActions = memo(function HeaderActions({
             Interactive
           </button>
         </div>
+      )}
+
+      {/* Preview dark mode toggle */}
+      {showPreviewDarkModeToggle && onPreviewDarkModeChange && (
+        <PreviewModeToggle
+          isDarkMode={previewDarkMode}
+          onToggle={onPreviewDarkModeChange}
+          disabled={isSaving}
+        />
       )}
 
       {/* Status indicators */}

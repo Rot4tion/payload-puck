@@ -15,5 +15,8 @@ export type {
   HybridPageDataInput,
 } from './HybridPageRenderer'
 
+// Re-export createRenderLayouts for convenience (commonly used with renderers)
+export { createRenderLayouts } from '../layouts/utils'
+
 // Note: PuckEditor has been moved to '@delmaredigital/payload-puck/editor'
 // to avoid RSC import issues with the client-only Puck component

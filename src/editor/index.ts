@@ -55,6 +55,8 @@ export { HeaderActions, type HeaderActionsProps } from './components/HeaderActio
 export { IframeWrapper, type IframeWrapperProps, type LayoutStyle } from './components/IframeWrapper.js'
 export { LoadingState, type LoadingStateProps } from './components/LoadingState.js'
 export { PreviewModal, type PreviewModalProps } from './components/PreviewModal.js'
+export { DarkModeStyles, type DarkModeStylesProps } from './components/DarkModeStyles.js'
+export { PreviewModeToggle, type PreviewModeToggleProps } from './components/PreviewModeToggle.js'
 /**
  * @deprecated Use createVersionHistoryPlugin instead. VersionHistory has moved to the plugin rail.
  */
@@ -66,6 +68,7 @@ export { detectPageTree, hasPageTreeFields } from './utils/detectPageTree.js'
 
 // Hooks
 export { useUnsavedChanges, type UseUnsavedChangesReturn } from './hooks/useUnsavedChanges.js'
+export { useDarkMode, type UseDarkModeReturn, type DarkModeSource } from './hooks/useDarkMode.js'
 
 // Plugins
 export { headingAnalyzer } from './plugins/index.js'

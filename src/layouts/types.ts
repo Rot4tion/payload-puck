@@ -60,12 +60,24 @@ export interface LayoutDefinition extends LayoutOption {
   dataAttributes?: Record<string, string>
   /**
    * Header component to render above the page content.
-   * Shown in both the editor preview and the rendered page.
+   *
+   * **Editor vs Render considerations:**
+   * - Include in layouts for `PuckConfigProvider` so the editor iframe shows realistic preview
+   * - For `PageRenderer`/`HybridPageRenderer`, consider using `createRenderLayouts()` to strip
+   *   header/footer if your host app's root layout already provides them (avoids double headers)
+   *
+   * @see createRenderLayouts
    */
   header?: ComponentType
   /**
    * Footer component to render below the page content.
-   * Shown in both the editor preview and the rendered page.
+   *
+   * **Editor vs Render considerations:**
+   * - Include in layouts for `PuckConfigProvider` so the editor iframe shows realistic preview
+   * - For `PageRenderer`/`HybridPageRenderer`, consider using `createRenderLayouts()` to strip
+   *   header/footer if your host app's root layout already provides them (avoids double footers)
+   *
+   * @see createRenderLayouts
    */
   footer?: ComponentType
   /**

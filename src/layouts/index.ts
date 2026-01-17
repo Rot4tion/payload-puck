@@ -53,6 +53,7 @@ export {
   layoutsToPayloadOptions,
   createLayout,
   mergeLayouts,
+  createRenderLayouts,
 } from './utils'
 
 // Components

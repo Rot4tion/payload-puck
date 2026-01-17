@@ -81,6 +81,13 @@ export interface IframeWrapperProps {
    * Useful for CSS variables or style overrides.
    */
   editorCss?: string
+  /**
+   * Override the layout's dark mode setting for the preview.
+   * When true, forces dark mode in the preview iframe.
+   * When false, forces light mode in the preview iframe.
+   * When undefined, uses the layout's editorDarkMode setting.
+   */
+  previewDarkModeOverride?: boolean
 }
 
 /**
@@ -124,6 +131,7 @@ export const IframeWrapper = memo(function IframeWrapper({
   defaultLayout = 'default',
   editorStylesheets,
   editorCss,
+  previewDarkModeOverride,
 }: IframeWrapperProps) {
   const appState = usePuck((s) => s.appState)
 
@@ -192,14 +200,19 @@ export const IframeWrapper = memo(function IframeWrapper({
     body.style.backgroundAttachment = 'fixed'
     body.style.minHeight = '100vh'
 
-    // Apply theme class for dark/light mode
-    if (layoutConfig.isDark) {
+    // Apply theme class and data-theme attribute for dark/light mode
+    // Supports both patterns: CSS classes (.dark/.light) and data attributes ([data-theme='dark'])
+    // previewDarkModeOverride takes precedence over layoutConfig.isDark
+    const isDark = previewDarkModeOverride ?? layoutConfig.isDark
+    if (isDark) {
       html.classList.add('dark')
       html.classList.remove('light')
+      html.setAttribute('data-theme', 'dark')
       body.style.color = '#ffffff'
     } else {
       html.classList.remove('dark')
       html.classList.add('light')
+      html.setAttribute('data-theme', 'light')
       body.style.color = '#1f2937' // gray-800
     }
 
@@ -217,6 +230,11 @@ export const IframeWrapper = memo(function IframeWrapper({
         }
       }
 
+      // Get origin for resolving relative URLs
+      // Puck's iframe may use srcdoc which doesn't have a proper base URL,
+      // so relative paths like '/api/puck/styles' won't resolve correctly
+      const origin = typeof window !== 'undefined' ? window.location.origin : ''
+
       editorStylesheets.forEach((href, index) => {
         const linkId = `puck-editor-stylesheet-${index}`
         const existingLink = iframeDoc.getElementById(linkId) as HTMLLinkElement | null
@@ -226,7 +244,8 @@ export const IframeWrapper = memo(function IframeWrapper({
           const link = iframeDoc.createElement('link')
           link.id = linkId
           link.rel = 'stylesheet'
-          link.href = href
+          // Resolve relative URLs to absolute URLs for iframe compatibility
+          link.href = href.startsWith('/') ? `${origin}${href}` : href
           // Track when stylesheet loads
           link.onload = checkAllLoaded
           link.onerror = checkAllLoaded // Count errors too to avoid hanging
@@ -377,7 +396,7 @@ export const IframeWrapper = memo(function IframeWrapper({
       `
       iframeDoc.head.appendChild(style)
     }
-  }, [iframeDoc, layoutConfig, pageBackground, editorStylesheets, editorCss, stylesLoaded])
+  }, [iframeDoc, layoutConfig, pageBackground, editorStylesheets, editorCss, stylesLoaded, previewDarkModeOverride])
 
   // Get header/footer components from layout config
   const LayoutHeader = layoutConfig.header

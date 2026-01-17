@@ -5,6 +5,87 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.2] - 2026-01-17
+
+This release adds dark mode support for the Puck editor and includes several bug fixes.
+
+### Added
+
+#### Dark Mode Support
+
+The Puck editor now automatically detects PayloadCMS dark mode and applies CSS overrides to fix visibility issues (white-on-white text). Also includes a preview toggle to test how pages look in both light and dark modes.
+
+**Features:**
+- **Auto-detection**: Detects `.dark` class on `document.documentElement` (PayloadCMS) or `prefers-color-scheme: dark` (OS preference)
+- **Preview toggle**: Sun/Moon toggle in the header to switch preview iframe between light/dark modes
+- **CSS overrides**: Injects Puck color variable overrides when dark mode is detected
+
+**New components:**
+- `DarkModeStyles` - Injects Puck color variable overrides when dark mode detected
+- `PreviewModeToggle` - Toggle for switching preview iframe dark/light mode
+- `useDarkMode` hook - Detects dark mode from class or media query
+
+**New props on `PuckEditor`:**
+- `autoDetectDarkMode` (default: `true`) - Enable automatic dark mode detection for editor UI
+- `showPreviewDarkModeToggle` (default: `true`) - Show light/dark toggle for preview iframe
+- `initialPreviewDarkMode` (default: `false`) - Initial dark mode state for preview iframe
+
+```typescript
+<PuckEditor
+  autoDetectDarkMode={true}           // Auto-detect PayloadCMS dark mode
+  showPreviewDarkModeToggle={true}    // Show sun/moon toggle
+  initialPreviewDarkMode={false}      // Start preview in light mode
+/>
+```
+
+New exports from `@delmaredigital/payload-puck/editor`:
+```typescript
+import {
+  DarkModeStyles,
+  PreviewModeToggle,
+  useDarkMode,
+} from '@delmaredigital/payload-puck/editor'
+```
+
+#### createRenderLayouts Utility
+
+New utility to strip header/footer from layouts for rendering. Use this when your host app already provides a global header/footer via its root layout:
+
+```typescript
+import { HybridPageRenderer, createRenderLayouts } from '@delmaredigital/payload-puck/render'
+import { siteLayouts } from '@/lib/puck-layouts'
+
+// Strip header/footer for rendering (host app provides them)
+const renderLayouts = createRenderLayouts(siteLayouts)
+```
+
+This keeps header/footer in editor layouts for realistic preview while avoiding double headers when rendering.
+
+Also exported from `@delmaredigital/payload-puck/layouts`.
+
+### Fixed
+
+- **Homepage preview URL**: Preview button now correctly navigates to `/` for pages marked as homepage instead of using the page slug
+- **Editor iframe stylesheet URLs**: Relative stylesheet URLs (like `/api/puck/styles`) now resolve correctly in the Puck editor iframe, fixing broken styles when using `editorStylesheets` prop
+- **Editor iframe data-theme attribute**: IframeWrapper now sets `data-theme` attribute in addition to CSS classes, fixing styles for projects using `[data-theme='dark']` selectors (common with shadcn/ui, Next.js themes)
+- **CSS compilation now uses project's postcss.config**: The `/api/puck/styles` endpoint now loads the project's `postcss.config.js` via `postcss-load-config`, ensuring all plugins and configuration are properly applied. Falls back to direct Tailwind import if config loading fails.
+- **MediaField styling**: Fixed border CSS syntax and resolved nested interactive element warning by replacing `<button>` with `<span>` inside the file input label
+
+### Notes
+
+**Fonts in Editor Preview**: If your project uses custom fonts loaded via `next/font` (like Google Fonts or local fonts), these won't automatically appear in the editor iframe. Add the font URLs to `editorStylesheetUrls`:
+
+```typescript
+createPuckPlugin({
+  editorStylesheet: 'src/app/globals.css',
+  editorStylesheetUrls: [
+    'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap'
+  ],
+})
+```
+
+---
+
 ## [0.6.1] - 2026-01-17
 
 This patch release fixes editor state synchronization and adds quality-of-life improvements for page-tree integration and TypeScript.

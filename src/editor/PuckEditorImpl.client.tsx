@@ -14,6 +14,7 @@ import { Maximize2 } from 'lucide-react'
 import { HeaderActions } from './components/HeaderActions'
 import { IframeWrapper, type LayoutStyle } from './components/IframeWrapper'
 import { PreviewModal } from './components/PreviewModal'
+import { DarkModeStyles } from './components/DarkModeStyles'
 import { useUnsavedChanges } from './hooks/useUnsavedChanges'
 import { createVersionHistoryPlugin } from './plugins/versionHistoryPlugin'
 import { ThemeProvider, type ThemeConfig } from '../theme'
@@ -64,6 +65,8 @@ interface PuckDataWithMeta extends Data {
       // Page-tree integration fields
       folder?: string | null
       pageSegment?: string
+      // Homepage field
+      isHomepage?: boolean
       [key: string]: unknown
     }
   }
@@ -215,6 +218,30 @@ export interface PuckEditorImplProps {
    * @default false
    */
   experimentalFullScreenCanvas?: boolean
+
+  // Dark mode props
+
+  /**
+   * Auto-detect dark mode from PayloadCMS admin.
+   * When true (default), dark mode CSS is automatically injected when Payload is in dark mode.
+   * Set to false to disable automatic dark mode detection.
+   * @default true
+   */
+  autoDetectDarkMode?: boolean
+
+  /**
+   * Show the preview dark mode toggle near the viewport switcher.
+   * Allows toggling the preview iframe between light/dark modes independently.
+   * @default true
+   */
+  showPreviewDarkModeToggle?: boolean
+
+  /**
+   * Initial state for the preview dark mode toggle.
+   * Only used when showPreviewDarkModeToggle is true.
+   * @default false (light mode)
+   */
+  initialPreviewDarkMode?: boolean
 }
 
 /**
@@ -260,6 +287,9 @@ export function PuckEditorImpl({
   hasPromptsCollection = false,
   hasContextCollection = false,
   experimentalFullScreenCanvas = false,
+  autoDetectDarkMode = true,
+  showPreviewDarkModeToggle = true,
+  initialPreviewDarkMode = false,
 }: PuckEditorImplProps) {
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
@@ -272,6 +302,9 @@ export function PuckEditorImpl({
 
   // Preview modal state
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+
+  // Preview dark mode state (for toggling dark/light in preview iframe)
+  const [previewDarkMode, setPreviewDarkMode] = useState(initialPreviewDarkMode)
 
   // Inject slug into initial data if not present
   const dataWithSlug = useMemo<PuckDataWithMeta>(() => {
@@ -471,14 +504,18 @@ export function PuckEditorImpl({
 
   // Handle preview (opens in new tab)
   const handlePreview = useCallback(() => {
-    const currentSlug = latestDataRef.current?.root?.props?.slug || pageSlug
+    const rootProps = latestDataRef.current?.root?.props
+    const currentSlug = rootProps?.slug || pageSlug
+    const isHomepage = rootProps?.isHomepage === true
     let url: string
     if (typeof previewUrl === 'function') {
-      url = previewUrl(currentSlug)
+      // If homepage, pass '/' to the function, otherwise pass the slug
+      url = previewUrl(isHomepage ? '' : currentSlug)
     } else if (previewUrl) {
       url = previewUrl
     } else {
-      url = `/${currentSlug}`
+      // If homepage, navigate to root, otherwise use slug
+      url = isHomepage ? '/' : `/${currentSlug}`
     }
     window.open(url, '_blank')
   }, [pageSlug, previewUrl])
@@ -551,6 +588,9 @@ export function PuckEditorImpl({
           saveError={saveError}
           onDismissError={() => setSaveError(null)}
           showVersionHistory={false}
+          showPreviewDarkModeToggle={showPreviewDarkModeToggle}
+          previewDarkMode={previewDarkMode}
+          onPreviewDarkModeChange={setPreviewDarkMode}
         >
           {children}
         </HeaderActions>
@@ -564,6 +604,7 @@ export function PuckEditorImpl({
           layoutKey={layoutKey}
           editorStylesheets={mergedEditorStylesheets}
           editorCss={mergedEditorCss}
+          previewDarkModeOverride={showPreviewDarkModeToggle ? previewDarkMode : undefined}
         >
           {children}
         </IframeWrapper>
@@ -594,6 +635,9 @@ export function PuckEditorImpl({
       customOverrides,
       mergedEditorStylesheets,
       mergedEditorCss,
+      showPreviewDarkModeToggle,
+      previewDarkMode,
+      setPreviewDarkMode,
     ]
   )
 
@@ -730,6 +774,8 @@ export function PuckEditorImpl({
 
   const editorContent = (
     <>
+      {/* Dark mode CSS injection - automatically detects PayloadCMS dark mode */}
+      {autoDetectDarkMode && <DarkModeStyles />}
       <div className="h-screen">
         <Puck
           config={config}

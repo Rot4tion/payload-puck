@@ -16,6 +16,7 @@ A PayloadCMS plugin for integrating [Puck](https://puckeditor.com) visual page b
 - [Building Custom Components](#building-custom-components)
 - [Theming](#theming)
 - [Layouts](#layouts)
+- [Dark Mode Support](#dark-mode-support)
 - [Page-Tree Integration](#page-tree-integration)
 - [Hybrid Integration](#hybrid-integration)
 - [AI Integration](#ai-integration)
@@ -822,6 +823,85 @@ const layout = siteLayouts.find(l => l.value === page.puckData?.root?.props?.pag
 <LayoutWrapper layout={layout}>
   <PageRenderer config={baseConfig} data={page.puckData} />
 </LayoutWrapper>
+```
+
+### Avoiding Double Headers/Footers
+
+When your host app already provides a global header/footer via its root layout (e.g., Next.js `layout.tsx`), use `createRenderLayouts()` to strip them from Puck layouts:
+
+```typescript
+import { HybridPageRenderer, createRenderLayouts } from '@delmaredigital/payload-puck/render'
+import { siteLayouts } from '@/lib/puck-layouts' // layouts with header/footer for editor
+
+// Strip header/footer for rendering (host app layout provides them)
+const renderLayouts = createRenderLayouts(siteLayouts)
+
+export function PageRenderer({ page }) {
+  const layout = renderLayouts.find(l => l.value === page.puckData?.root?.props?.pageLayout)
+
+  return (
+    <LayoutWrapper layout={layout}>
+      <HybridPageRenderer page={page} config={baseConfig} />
+    </LayoutWrapper>
+  )
+}
+```
+
+This pattern keeps header/footer in your editor layouts for realistic preview, but avoids double headers when rendering.
+
+---
+
+## Dark Mode Support
+
+The Puck editor automatically detects PayloadCMS dark mode and applies CSS overrides to ensure visibility. It also provides a preview toggle to test how pages look in both light and dark modes.
+
+### How It Works
+
+1. **Editor UI**: Automatically detects dark mode via `.dark` class (PayloadCMS) or `prefers-color-scheme` (OS preference), then injects Puck CSS variable overrides
+2. **Preview Iframe**: A sun/moon toggle lets you switch the preview content between light and dark modes independently from the editor UI
+
+### Configuration
+
+Dark mode is enabled by default. You can customize via props on `PuckEditor`:
+
+```typescript
+<PuckEditor
+  autoDetectDarkMode={true}           // Auto-detect PayloadCMS dark mode (default: true)
+  showPreviewDarkModeToggle={true}    // Show light/dark toggle in header (default: true)
+  initialPreviewDarkMode={false}      // Start preview in light mode (default: false)
+/>
+```
+
+### Using Components Directly
+
+For custom editor implementations:
+
+```typescript
+import {
+  DarkModeStyles,
+  PreviewModeToggle,
+  useDarkMode,
+} from '@delmaredigital/payload-puck/editor'
+
+function CustomEditor() {
+  const { isDarkMode, source } = useDarkMode()
+  const [previewDark, setPreviewDark] = useState(false)
+
+  return (
+    <>
+      {/* Inject dark mode CSS overrides when detected */}
+      <DarkModeStyles />
+
+      {/* Toggle for preview iframe */}
+      <PreviewModeToggle
+        isDarkMode={previewDark}
+        onToggle={setPreviewDark}
+      />
+
+      <Puck ... />
+    </>
+  )
+}
 ```
 
 ---
