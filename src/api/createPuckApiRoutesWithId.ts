@@ -174,7 +174,7 @@ export function createPuckApiRoutesWithId(
 
       // Parse request body
       const body = (await request.json()) as UpdatePageBody
-      const { puckData, title, slug, status, draft, folder, pageSegment } = body
+      const { puckData, title, slug, status, draft, isHomepage, swapHomepage, folder, pageSegment } = body
 
       // Check publish permission only if explicitly publishing
       if (status === 'published') {
@@ -193,6 +193,32 @@ export function createPuckApiRoutesWithId(
       // Get Payload instance with provided config
       const config = await payloadConfig
       const payload = await getPayload({ config })
+
+      // Handle homepage swap - if swapHomepage is true and isHomepage is being set,
+      // unset the existing homepage first
+      if (swapHomepage && isHomepage === true) {
+        const existingHomepage = await payload.find({
+          collection,
+          where: {
+            and: [
+              { isHomepage: { equals: true } },
+              { id: { not_equals: id } },
+            ],
+          },
+          limit: 1,
+          depth: 0,
+        })
+
+        if (existingHomepage.docs.length > 0) {
+          await payload.update({
+            collection,
+            id: existingHomepage.docs[0].id as string,
+            data: { isHomepage: false },
+            // Pass context to skip the uniqueness hook on this update
+            context: { skipIsHomepageHook: true },
+          })
+        }
+      }
 
       // Extract root props from puckData for syncing to Payload fields
       const rootProps =
@@ -220,6 +246,11 @@ export function createPuckApiRoutesWithId(
       }
       if (slug !== undefined) {
         updateData.slug = slug
+      }
+
+      // Homepage flag: explicit isHomepage overrides the mapped value
+      if (isHomepage !== undefined) {
+        updateData.isHomepage = isHomepage
       }
 
       // Page-tree integration: explicit folder/pageSegment override the mapped values

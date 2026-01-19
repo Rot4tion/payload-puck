@@ -31,8 +31,9 @@
  * ```
  */
 
-import type { Field } from 'payload'
-import type { GetPuckFieldsOptions, ConversionTypeOption } from './types'
+import type { CollectionConfig, Field } from 'payload'
+import type { GetPuckFieldsOptions, GetPuckCollectionConfigOptions, ConversionTypeOption } from './types'
+import { createIsHomepageUniqueHook } from '../hooks/isHomepageUnique'
 import type { LayoutDefinition } from '../../layouts/types'
 import { DEFAULT_LAYOUTS } from '../../layouts/defaults'
 import { layoutsToPayloadOptions } from '../../layouts/utils'
@@ -415,5 +416,63 @@ export function getPuckFields(options: GetPuckFieldsOptions = {}): Field[] {
   return fields
 }
 
+/**
+ * Returns Puck-related fields AND hooks for hybrid collection integration.
+ *
+ * This is the recommended way to add Puck support to an existing collection
+ * when you need the isHomepage field, as it ensures the uniqueness hook is included.
+ *
+ * @param options - Configuration options for which fields and hooks to include
+ * @returns Object with fields array and hooks object to spread into your collection
+ *
+ * @example
+ * ```typescript
+ * import { getPuckCollectionConfig } from '@delmaredigital/payload-puck'
+ *
+ * const { fields, hooks } = getPuckCollectionConfig({
+ *   includeIsHomepage: true,
+ *   includeSEO: false,
+ * })
+ *
+ * export const Pages: CollectionConfig = {
+ *   slug: 'pages',
+ *   hooks: {
+ *     ...hooks,
+ *     // Your other hooks...
+ *     beforeChange: [
+ *       ...(hooks.beforeChange ?? []),
+ *       // Your custom beforeChange hooks...
+ *     ],
+ *   },
+ *   fields: [
+ *     { name: 'title', type: 'text', required: true },
+ *     { name: 'slug', type: 'text', required: true },
+ *     ...fields,
+ *   ],
+ * }
+ * ```
+ */
+export function getPuckCollectionConfig(options: GetPuckCollectionConfigOptions = {}): {
+  fields: Field[]
+  hooks: CollectionConfig['hooks']
+} {
+  const { includeHomepageHook = true, includeIsHomepage = false, ...fieldOptions } = options
+
+  // Get the fields using the existing getPuckFields function
+  const fields = getPuckFields({ includeIsHomepage, ...fieldOptions })
+
+  // Build hooks object
+  const hooks: CollectionConfig['hooks'] = {}
+
+  // Add isHomepage uniqueness hook if:
+  // - includeIsHomepage is true (the field is being added)
+  // - includeHomepageHook is not explicitly false
+  if (includeIsHomepage && includeHomepageHook !== false) {
+    hooks.beforeChange = [createIsHomepageUniqueHook()]
+  }
+
+  return { fields, hooks }
+}
+
 // Re-export types
-export type { GetPuckFieldsOptions, ConversionTypeOption } from './types'
+export type { GetPuckFieldsOptions, GetPuckCollectionConfigOptions, ConversionTypeOption } from './types'

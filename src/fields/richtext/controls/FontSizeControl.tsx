@@ -10,7 +10,7 @@
 
 import React, { useState, useRef, useCallback, type CSSProperties } from 'react'
 import { ALargeSmall, ChevronDown } from 'lucide-react'
-import { FONT_SIZES, FONT_SIZE_UNITS, controlStyles } from './shared'
+import { FONT_SIZES, FONT_SIZE_UNITS, controlStyles, forcePuckUpdate } from './shared'
 import { DropdownPortal } from './DropdownPortal'
 import type { Editor } from '@tiptap/react'
 
@@ -33,6 +33,7 @@ export function FontSizeControl({ editor, currentSize }: FontSizeControlProps) {
         editor.chain().focus().unsetFontSize().run()
       }
       setIsOpen(false)
+      forcePuckUpdate(editor)
     },
     [editor]
   )
@@ -43,6 +44,7 @@ export function FontSizeControl({ editor, currentSize }: FontSizeControlProps) {
       editor.chain().focus().setFontSize(size).run()
       setIsOpen(false)
       setCustomValue('')
+      forcePuckUpdate(editor)
     }
   }, [editor, customValue, customUnit])
 

@@ -14,7 +14,7 @@
 import React, { useState, useRef, useCallback, type CSSProperties } from 'react'
 import { Palette, ChevronDown } from 'lucide-react'
 import { useTheme } from '../../../theme'
-import { parseColor, normalizeHex, hexToRgba, controlStyles } from './shared'
+import { parseColor, normalizeHex, hexToRgba, controlStyles, forcePuckUpdate } from './shared'
 import { DropdownPortal } from './DropdownPortal'
 import type { Editor } from '@tiptap/react'
 
@@ -34,6 +34,7 @@ export function ColorPickerControl({ editor, currentColor }: ColorPickerControlP
       } else {
         editor.chain().focus().unsetColor().run()
       }
+      forcePuckUpdate(editor)
     },
     [editor]
   )

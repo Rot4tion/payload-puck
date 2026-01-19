@@ -359,6 +359,7 @@ export function PuckEditor({
     config: configFromContext,
     layouts: layoutsFromContext,
     theme: themeFromContext,
+    plugins: pluginsFromContext,
     editorStylesheets: editorStylesheetsFromContext,
     editorCss: editorCssFromContext,
   } = usePuckConfig()
@@ -366,6 +367,19 @@ export function PuckEditor({
   // Use prop config if provided, otherwise fall back to context
   const baseConfig = configProp || configFromContext
   const theme = themeProp || themeFromContext
+
+  // Merge plugins from props and context
+  // Props take precedence and are added first, context plugins follow
+  const mergedPlugins = useMemo(() => {
+    // If plugins prop is false, disable all plugins (including context ones)
+    if (plugins === false) return false
+    // If plugins prop is provided (not undefined), it takes precedence
+    // But also include context plugins
+    const propPlugins = plugins || []
+    const contextPlugins = pluginsFromContext || []
+    const combined = [...propPlugins, ...contextPlugins]
+    return combined.length > 0 ? combined : undefined
+  }, [plugins, pluginsFromContext])
 
   // Props take precedence over context for editor stylesheets
   const editorStylesheets = editorStylesheetsProp || editorStylesheetsFromContext
@@ -538,7 +552,7 @@ export function PuckEditor({
       backUrl={backUrl}
       previewUrl={previewUrl}
       enableViewports={enableViewports}
-      plugins={plugins}
+      plugins={mergedPlugins}
       layouts={layouts}
       layoutStyles={layoutStyles}
       layoutKey={layoutKey}

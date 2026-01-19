@@ -350,33 +350,88 @@ export function PuckEditorImpl({
     return parts.length > 0 ? parts.join('\n') : undefined
   }, [baseCss, currentLayout?.editorCss])
 
+  // Helper to make save request with optional homepage swap
+  const makeSaveRequest = useCallback(
+    async (
+      data: Data,
+      options: { publish?: boolean; swapHomepage?: boolean } = {}
+    ): Promise<Response> => {
+      const typedData = data as PuckDataWithMeta
+      return fetch(`${apiEndpoint}/${pageId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          puckData: data,
+          title: typedData.root?.props?.title || pageTitle,
+          slug: typedData.root?.props?.slug || pageSlug,
+          isHomepage: typedData.root?.props?.isHomepage,
+          swapHomepage: options.swapHomepage,
+          // Page-tree integration: include folder and pageSegment if present
+          folder: typedData.root?.props?.folder,
+          pageSegment: typedData.root?.props?.pageSegment,
+          ...(options.publish ? { _status: 'published' } : { draft: true }),
+        }),
+      })
+    },
+    [apiEndpoint, pageId, pageTitle, pageSlug]
+  )
+
+  // Handle homepage conflict - prompt user to swap
+  const handleHomepageConflict = useCallback(
+    async (
+      existingHomepage: { id: string; title: string; slug: string },
+      data: Data,
+      publish: boolean
+    ): Promise<boolean> => {
+      const confirmed = confirm(
+        `"${existingHomepage.title}" (/${existingHomepage.slug}) is currently set as the homepage.\n\nDo you want to make this page the homepage instead?`
+      )
+      if (!confirmed) {
+        return false
+      }
+
+      // Retry with swapHomepage flag
+      const response = await makeSaveRequest(data, { publish, swapHomepage: true })
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || errorData.message || 'Failed to swap homepage')
+      }
+      return true
+    },
+    [makeSaveRequest]
+  )
+
   // Handle save (as draft)
   const handleSave = useCallback(
     async (data: Data) => {
       setIsSaving(true)
       const typedData = data as PuckDataWithMeta
       try {
-        const response = await fetch(`${apiEndpoint}/${pageId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            puckData: data,
-            title: typedData.root?.props?.title || pageTitle,
-            slug: typedData.root?.props?.slug || pageSlug,
-            // Page-tree integration: include folder and pageSegment if present
-            folder: typedData.root?.props?.folder,
-            pageSegment: typedData.root?.props?.pageSegment,
-            draft: true, // Save as draft, don't publish
-          }),
-        })
+        const response = await makeSaveRequest(data, { publish: false })
 
         if (!response.ok) {
           const errorData = await response.json()
-          const errorMessage = errorData.error || errorData.message || 'Failed to save page'
-          const err = new Error(errorMessage) as Error & { field?: string; details?: unknown }
-          err.field = errorData.field
-          err.details = errorData.details
-          throw err
+
+          // Check for homepage conflict error
+          if (errorData.data?.existingHomepage) {
+            const swapped = await handleHomepageConflict(
+              errorData.data.existingHomepage,
+              data,
+              false
+            )
+            if (!swapped) {
+              // User cancelled - don't show error, just return
+              setIsSaving(false)
+              return
+            }
+            // Successfully swapped - continue to success handling below
+          } else {
+            const errorMessage = errorData.error || errorData.message || 'Failed to save page'
+            const err = new Error(errorMessage) as Error & { field?: string; details?: unknown }
+            err.field = errorData.field
+            err.details = errorData.details
+            throw err
+          }
         }
 
         setLastSaved(new Date())
@@ -393,7 +448,7 @@ export function PuckEditorImpl({
         setIsSaving(false)
       }
     },
-    [apiEndpoint, pageId, pageTitle, pageSlug, markClean, onSaveSuccess, onSaveError]
+    [makeSaveRequest, handleHomepageConflict, markClean, onSaveSuccess, onSaveError]
   )
 
   // Handle publish
@@ -402,27 +457,31 @@ export function PuckEditorImpl({
       setIsSaving(true)
       const typedData = data as PuckDataWithMeta
       try {
-        const response = await fetch(`${apiEndpoint}/${pageId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            puckData: data,
-            title: typedData.root?.props?.title || pageTitle,
-            slug: typedData.root?.props?.slug || pageSlug,
-            // Page-tree integration: include folder and pageSegment if present
-            folder: typedData.root?.props?.folder,
-            pageSegment: typedData.root?.props?.pageSegment,
-            _status: 'published',
-          }),
-        })
+        const response = await makeSaveRequest(data, { publish: true })
 
         if (!response.ok) {
           const errorData = await response.json()
-          const errorMessage = errorData.error || errorData.message || 'Failed to publish page'
-          const err = new Error(errorMessage) as Error & { field?: string; details?: unknown }
-          err.field = errorData.field
-          err.details = errorData.details
-          throw err
+
+          // Check for homepage conflict error
+          if (errorData.data?.existingHomepage) {
+            const swapped = await handleHomepageConflict(
+              errorData.data.existingHomepage,
+              data,
+              true
+            )
+            if (!swapped) {
+              // User cancelled - don't show error, just return
+              setIsSaving(false)
+              return
+            }
+            // Successfully swapped - continue to success handling below
+          } else {
+            const errorMessage = errorData.error || errorData.message || 'Failed to publish page'
+            const err = new Error(errorMessage) as Error & { field?: string; details?: unknown }
+            err.field = errorData.field
+            err.details = errorData.details
+            throw err
+          }
         }
 
         setLastSaved(new Date())
@@ -439,7 +498,7 @@ export function PuckEditorImpl({
         setIsSaving(false)
       }
     },
-    [apiEndpoint, pageId, pageTitle, pageSlug, markClean, onSaveSuccess, onSaveError]
+    [makeSaveRequest, handleHomepageConflict, markClean, onSaveSuccess, onSaveError]
   )
 
   // Handle unpublish (revert to draft)
@@ -786,6 +845,7 @@ export function PuckEditorImpl({
           plugins={resolvedPlugins}
           viewports={enableViewports ? DEFAULT_VIEWPORTS : undefined}
           overrides={overrides}
+          iframe={{ waitForStyles: true }}
           _experimentalFullScreenCanvas={experimentalFullScreenCanvas}
         />
       </div>

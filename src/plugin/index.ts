@@ -5,6 +5,7 @@ import { TemplatesCollection } from '../collections/Templates'
 import { AiPromptsCollection } from '../ai/collections/AiPrompts.js'
 import { AiContextCollection } from '../ai/collections/AiContext.js'
 import { getPuckFields } from './fields'
+import { createIsHomepageUniqueHook } from './hooks/isHomepageUnique'
 import {
   createListHandler,
   createCreateHandler,
@@ -236,6 +237,9 @@ export function createPuckPlugin(options: PuckPluginOptions = {}): Plugin {
         const existingFields = existingCollection.fields || []
         const existingFieldNames = getExistingFieldNames(existingFields)
 
+        // Determine if isHomepage should be added
+        const shouldAddIsHomepage = !existingFieldNames.has('isHomepage')
+
         // Get Puck-specific fields (not the full collection with title/slug)
         // This avoids duplicating fields the user may have already defined
         const puckFields = getPuckFields({
@@ -243,7 +247,7 @@ export function createPuckPlugin(options: PuckPluginOptions = {}): Plugin {
           includeConversion: !existingFieldNames.has('conversionTracking'),
           includeEditorVersion: !existingFieldNames.has('editorVersion'),
           includePageLayout: !existingFieldNames.has('pageLayout'),
-          includeIsHomepage: !existingFieldNames.has('isHomepage'),
+          includeIsHomepage: shouldAddIsHomepage,
           layouts: options.layouts,
         })
 
@@ -252,6 +256,18 @@ export function createPuckPlugin(options: PuckPluginOptions = {}): Plugin {
 
         // Only add edit button if puckEdit doesn't exist
         const editFieldsToAdd = existingFieldNames.has('puckEdit') ? [] : editButtonField
+
+        // Merge hooks - add isHomepage uniqueness hook if we're adding the field
+        const existingHooks = existingCollection.hooks || {}
+        const mergedHooks = shouldAddIsHomepage
+          ? {
+              ...existingHooks,
+              beforeChange: [
+                createIsHomepageUniqueHook(),
+                ...(existingHooks.beforeChange ?? []),
+              ],
+            }
+          : existingHooks
 
         collections = [
           ...collections.slice(0, existingCollectionIndex),
@@ -262,6 +278,7 @@ export function createPuckPlugin(options: PuckPluginOptions = {}): Plugin {
               typeof existingCollection.versions === 'object'
                 ? { drafts: true, ...existingCollection.versions }
                 : existingCollection.versions ?? { drafts: true },
+            hooks: mergedHooks,
             fields: [
               ...existingFields,
               ...fieldsToAdd,
@@ -477,6 +494,7 @@ export { TemplatesCollection } from '../collections/Templates'
 // Re-export field utilities for hybrid collection integration
 export {
   getPuckFields,
+  getPuckCollectionConfig,
   puckDataField,
   editorVersionField,
   createEditorVersionField,
@@ -493,6 +511,14 @@ export { generatePuckEditField }
 // Export styles endpoint constant
 export { PUCK_STYLES_ENDPOINT } from '../endpoints/styles.js'
 
+// Re-export hooks for hybrid collection integration
+export {
+  createIsHomepageUniqueHook,
+  unsetHomepage,
+  HomepageConflictError,
+} from './hooks'
+export type { IsHomepageUniqueHookOptions } from './hooks'
+
 // Re-export types
 export type { PuckPluginOptions, PuckAdminConfig } from '../types'
-export type { GetPuckFieldsOptions } from './fields/types'
+export type { GetPuckFieldsOptions, GetPuckCollectionConfigOptions } from './fields/types'

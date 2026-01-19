@@ -991,13 +991,52 @@ export default buildConfig({
 
 The `editorVersion` field auto-detects whether pages use legacy blocks or Puck.
 
-### Manual with `getPuckFields()`
+### Manual with `getPuckCollectionConfig()` (Recommended)
+
+When you need the `isHomepage` field, use `getPuckCollectionConfig()` which returns both fields AND hooks. This ensures the homepage uniqueness validation is included:
 
 ```typescript
-import { getPuckFields } from '@delmaredigital/payload-puck'
+import { getPuckCollectionConfig } from '@delmaredigital/payload-puck'
+
+const { fields: puckFields, hooks: puckHooks } = getPuckCollectionConfig({
+  includeSEO: true,
+  includeEditorVersion: true,
+  includePageLayout: true,
+  includeIsHomepage: true, // Includes uniqueness hook automatically
+})
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
+  hooks: {
+    beforeChange: [
+      ...(puckHooks.beforeChange ?? []),
+      // Your other beforeChange hooks...
+    ],
+    afterChange: [
+      // Your afterChange hooks...
+    ],
+  },
+  fields: [
+    { name: 'title', type: 'text' },
+    { name: 'layout', type: 'blocks', blocks: [...] },
+    ...puckFields,
+  ],
+}
+```
+
+### Manual with `getPuckFields()` (Fields Only)
+
+If you don't need `isHomepage` or want to configure hooks manually:
+
+```typescript
+import { getPuckFields, createIsHomepageUniqueHook } from '@delmaredigital/payload-puck'
+
+export const Pages: CollectionConfig = {
+  slug: 'pages',
+  hooks: {
+    // Required if using includeIsHomepage: true
+    beforeChange: [createIsHomepageUniqueHook()],
+  },
   fields: [
     { name: 'title', type: 'text' },
     { name: 'layout', type: 'blocks', blocks: [...] },
@@ -1005,10 +1044,13 @@ export const Pages: CollectionConfig = {
       includeSEO: true,
       includeEditorVersion: true,
       includePageLayout: true,
+      includeIsHomepage: true, // Note: requires hook above for uniqueness
     }),
   ],
 }
 ```
+
+> **Note:** The `isHomepage` field allows marking one page as the homepage. The `createIsHomepageUniqueHook()` ensures only one page can be marked as homepage at a time, prompting users to swap if a homepage already exists.
 
 ### Rendering Hybrid Pages
 

@@ -5,6 +5,62 @@
  */
 
 import type { CSSProperties } from 'react'
+import type { Editor } from '@tiptap/react'
+
+// =============================================================================
+// Puck Focus Workaround
+// =============================================================================
+
+/**
+ * Forces Puck to recognize editor changes after applying text styles.
+ *
+ * ## Why this is needed
+ *
+ * Puck's `useSyncedEditor` hook has a guard condition in its `onUpdate` callback:
+ *
+ * ```js
+ * onUpdate: ({ editor }) => {
+ *   if (syncingRef.current || !isFocused) {
+ *     return;  // Changes are dropped!
+ *   }
+ *   // ... save changes
+ * }
+ * ```
+ *
+ * When using dropdown controls (font size, color picker), focus moves from the
+ * editor to the dropdown. Even though we call `editor.chain().focus()...run()`,
+ * Puck's React `isFocused` state may not have updated yet, causing the change
+ * to be silently dropped.
+ *
+ * This workaround inserts and immediately removes a zero-width space character
+ * after a delay, which:
+ * 1. Waits for React state to settle (focus state update)
+ * 2. Forces a real document change that triggers Puck's onUpdate
+ * 3. The insert+delete is atomic, so it doesn't affect undo history badly
+ *
+ * @see https://github.com/measuredco/puck - Core Puck library
+ */
+export function forcePuckUpdate(editor: Editor): void {
+  // Use setTimeout to ensure React state has settled after focus change
+  setTimeout(() => {
+    if (editor.isDestroyed) return
+
+    // Save current selection
+    const { from, to } = editor.state.selection
+
+    // Insert and immediately delete a zero-width space to force a document change
+    // This triggers Puck's onUpdate with the focus state now correctly set
+    // We insert at the end of the document to avoid disrupting the user's cursor
+    const docEnd = editor.state.doc.content.size
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(docEnd, '\u200B') // Zero-width space at end
+      .deleteRange({ from: docEnd, to: docEnd + 1 })
+      .setTextSelection({ from, to }) // Restore original selection
+      .run()
+  }, 50)
+}
 
 // =============================================================================
 // Font Size Presets
@@ -340,10 +396,11 @@ export const controlStyles = {
     fontSize: '12px',
     borderRadius: '4px',
     border: '1px solid var(--puck-color-grey-03)',
-    backgroundColor: 'transparent',
+    backgroundColor: 'var(--puck-color-white)',
+    color: 'var(--puck-color-grey-07)',
     cursor: 'pointer',
     textAlign: 'center',
-    transition: 'background-color 0.15s',
+    transition: 'background-color 0.15s, border-color 0.15s',
   } as CSSProperties,
 
   fontSizeButtonActive: {
@@ -368,6 +425,8 @@ export const controlStyles = {
     border: '1px solid var(--puck-color-grey-03)',
     borderRadius: '4px',
     outline: 'none',
+    backgroundColor: 'var(--puck-color-white)',
+    color: 'var(--puck-color-grey-08)',
   } as CSSProperties,
 
   customSizeSelect: {
@@ -377,6 +436,7 @@ export const controlStyles = {
     borderRadius: '4px',
     outline: 'none',
     backgroundColor: 'var(--puck-color-white)',
+    color: 'var(--puck-color-grey-08)',
   } as CSSProperties,
 
   customSizeApply: {

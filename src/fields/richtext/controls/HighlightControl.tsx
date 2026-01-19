@@ -13,7 +13,7 @@
 
 import React, { useState, useRef, useCallback } from 'react'
 import { Highlighter, ChevronDown } from 'lucide-react'
-import { controlStyles } from './shared'
+import { controlStyles, forcePuckUpdate } from './shared'
 import { ColorPickerPanel } from './ColorPickerControl'
 import { DropdownPortal } from './DropdownPortal'
 import type { Editor } from '@tiptap/react'
@@ -35,6 +35,7 @@ export function HighlightControl({ editor, currentColor, isActive }: HighlightCo
       } else {
         editor.chain().focus().unsetHighlight().run()
       }
+      forcePuckUpdate(editor)
     },
     [editor]
   )

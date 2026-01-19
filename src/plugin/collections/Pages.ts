@@ -10,6 +10,7 @@ import {
   seoFieldGroup,
   conversionFieldGroup,
 } from '../fields'
+import { createIsHomepageUniqueHook } from '../hooks/isHomepageUnique'
 
 /**
  * Default access function - allows all
@@ -126,6 +127,25 @@ export function generatePagesCollection(
       update: access.update ?? defaultAccess,
       delete: access.delete ?? defaultAccess,
       ...(collectionOverrides.access ?? {}),
+    },
+    hooks: {
+      // Properly merge hook arrays - don't let spread operator overwrite
+      beforeChange: [
+        createIsHomepageUniqueHook(),
+        ...(collectionOverrides.hooks?.beforeChange ?? []),
+      ],
+      beforeValidate: collectionOverrides.hooks?.beforeValidate,
+      beforeDelete: collectionOverrides.hooks?.beforeDelete,
+      beforeRead: collectionOverrides.hooks?.beforeRead,
+      afterChange: collectionOverrides.hooks?.afterChange,
+      afterDelete: collectionOverrides.hooks?.afterDelete,
+      afterRead: collectionOverrides.hooks?.afterRead,
+      afterOperation: collectionOverrides.hooks?.afterOperation,
+      afterForgotPassword: collectionOverrides.hooks?.afterForgotPassword,
+      afterLogin: collectionOverrides.hooks?.afterLogin,
+      afterLogout: collectionOverrides.hooks?.afterLogout,
+      afterRefresh: collectionOverrides.hooks?.afterRefresh,
+      afterMe: collectionOverrides.hooks?.afterMe,
     },
     versions:
       typeof collectionOverrides.versions === 'object'

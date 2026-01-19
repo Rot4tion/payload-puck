@@ -321,6 +321,16 @@ export interface UpdatePageBody {
    */
   draft?: boolean
   /**
+   * Mark this page as the homepage.
+   * Consumers should check this flag first, then fall back to slug convention.
+   */
+  isHomepage?: boolean
+  /**
+   * When true and isHomepage is true, automatically unsets the existing homepage.
+   * Used when the user confirms they want to swap homepages.
+   */
+  swapHomepage?: boolean
+  /**
    * Folder ID for page-tree integration.
    * When page-tree plugin is active, this determines the page's parent folder.
    */

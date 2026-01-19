@@ -5,6 +5,97 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.4] - 2026-01-19
+
+This release adds homepage swap functionality and fixes several issues with rich text editing, hook merging, and editor iframe styling.
+
+### Added
+
+#### Homepage Swap Functionality
+
+When attempting to set a page as the homepage and another page already has that designation, the editor now shows a confirmation dialog offering to swap homepages. This provides a much better UX than simply failing with an error.
+
+**How it works:**
+1. User checks "Is Homepage" on a page
+2. If another page is already the homepage, a dialog appears: "Page X is currently the homepage. Would you like to swap?"
+3. If confirmed, the old homepage is unset and the new one is set atomically
+
+**New exports:**
+```typescript
+import {
+  createIsHomepageUniqueHook,
+  HomepageConflictError,
+  unsetHomepage,
+} from '@delmaredigital/payload-puck'
+```
+
+#### `getPuckCollectionConfig()` Helper
+
+New helper function that returns both fields AND hooks for hybrid collection integration. This ensures the `isHomepage` uniqueness hook is included when using the field.
+
+```typescript
+import { getPuckCollectionConfig } from '@delmaredigital/payload-puck'
+
+const { fields, hooks } = getPuckCollectionConfig({
+  includeIsHomepage: true,  // Includes uniqueness hook automatically
+  includeSEO: true,
+})
+
+export const Pages: CollectionConfig = {
+  slug: 'pages',
+  hooks: {
+    beforeChange: [
+      ...(hooks.beforeChange ?? []),
+      // Your other hooks...
+    ],
+  },
+  fields: [
+    { name: 'title', type: 'text' },
+    ...fields,
+  ],
+}
+```
+
+#### Custom Plugin Rails Support
+
+The `PuckEditor` component now accepts a `plugins` prop for custom Puck plugins. This enables adding custom panels to the plugin rail.
+
+### Fixed
+
+#### Rich Text Style Changes Not Triggering Dirty State
+
+Fixed an issue where changing font size, text color, or highlights via dropdown controls wouldn't mark the editor as having unsaved changes. The root cause is a focus state race condition in Puck core's `useSyncedEditor` hook. This release includes a workaround that forces Puck to recognize the changes.
+
+See `docs/PUCK_CORE_RICH_TEXT_ISSUE.md` for technical details.
+
+#### Dark Mode Styling for Font Size Buttons
+
+Fixed white-on-white text in the font size dropdown and custom size input when Payload admin is in dark mode.
+
+#### Hook Merging in `generatePagesCollection`
+
+Fixed a bug where the `isHomepage` uniqueness hook wasn't being triggered because:
+1. When generating a new collection, the spread operator was overwriting the entire hooks object instead of merging arrays
+2. When augmenting an existing collection, hooks weren't being added at all
+
+#### Editor Iframe Stylesheet Loading
+
+Fixed FOUC (Flash of Unstyled Content) in the editor iframe by forcing a browser repaint after stylesheets finish loading. The fix uses Puck's `waitForStyles` option combined with a forced repaint via opacity toggle.
+
+#### `isHomepage` Field Not Saving
+
+Fixed `isHomepage` field not being included in save/publish requests from the editor.
+
+### Changed
+
+- `TemplateField` now uses Puck's `getItemById` API instead of manual tree traversal for accessing slot content, simplifying the code significantly
+
+### Documentation
+
+- Added `docs/PUCK_CORE_RICH_TEXT_ISSUE.md` documenting the Puck core focus state issue and our workaround
+
+---
+
 ## [0.6.3] - 2026-01-18
 
 This release adds build-time CSS compilation for production deployments and fixes dark mode issues in Payload admin.

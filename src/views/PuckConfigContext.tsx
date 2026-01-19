@@ -24,7 +24,7 @@
  */
 
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
-import type { Config as PuckConfig } from '@puckeditor/core'
+import type { Config as PuckConfig, Plugin as PuckPlugin } from '@puckeditor/core'
 import type { LayoutDefinition } from '../layouts/index.js'
 import type { ThemeConfig } from '../theme/index.js'
 
@@ -41,6 +41,22 @@ export interface PuckConfigContextValue {
    * Theme configuration for component styling
    */
   theme?: ThemeConfig
+  /**
+   * Additional Puck plugins to use in the editor.
+   * These plugins will be merged with the default plugins (heading analyzer, version history).
+   * Use this to add custom plugin rail panels for your specific use cases.
+   *
+   * @example
+   * ```tsx
+   * import { createGalleryPickerPlugin } from '@/puck/plugins'
+   *
+   * <PuckConfigProvider
+   *   config={editorConfig}
+   *   plugins={[createGalleryPickerPlugin()]}
+   * >
+   * ```
+   */
+  plugins?: PuckPlugin[]
   /**
    * Stylesheet URLs to inject into the editor iframe.
    * Use this to provide your frontend CSS (Tailwind, CSS variables, etc.)
@@ -88,6 +104,22 @@ export interface PuckConfigProviderProps {
    */
   theme?: ThemeConfig
   /**
+   * Additional Puck plugins to use in the editor.
+   * These plugins will be merged with the default plugins (heading analyzer, version history).
+   * Use this to add custom plugin rail panels for your specific use cases.
+   *
+   * @example
+   * ```tsx
+   * import { createGalleryPickerPlugin } from '@/puck/plugins'
+   *
+   * <PuckConfigProvider
+   *   config={editorConfig}
+   *   plugins={[createGalleryPickerPlugin()]}
+   * >
+   * ```
+   */
+  plugins?: PuckPlugin[]
+  /**
    * Stylesheet URLs to inject into the editor iframe.
    * Use this to provide your frontend CSS (Tailwind, CSS variables, etc.)
    * that header/footer components need for proper styling.
@@ -127,6 +159,7 @@ export function PuckConfigProvider({
   config,
   layouts,
   theme,
+  plugins,
   editorStylesheets,
   editorCss,
   children,
@@ -134,8 +167,8 @@ export function PuckConfigProvider({
   // Memoize context value to prevent unnecessary re-renders of consumers
   // when the provider re-renders but the values haven't changed
   const contextValue = useMemo<PuckConfigContextValue>(
-    () => ({ config, layouts, theme, editorStylesheets, editorCss }),
-    [config, layouts, theme, editorStylesheets, editorCss]
+    () => ({ config, layouts, theme, plugins, editorStylesheets, editorCss }),
+    [config, layouts, theme, plugins, editorStylesheets, editorCss]
   )
 
   return (

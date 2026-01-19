@@ -188,37 +188,6 @@ const styles = {
 // =============================================================================
 
 /**
- * Get the slot content for the currently selected component.
- */
-function getSlotContent(
-  data: Data,
-  componentId: string,
-  selectedItem: { type: string; props: Record<string, unknown> } | null
-): unknown[] {
-  if (selectedItem?.props?.content) {
-    const content = selectedItem.props.content
-    if (Array.isArray(content) && content.length > 0) {
-      return content
-    }
-  }
-
-  if (data.content && Array.isArray(data.content)) {
-    for (const item of data.content) {
-      const component = item as { type: string; props: { id?: string; content?: unknown[] } }
-      if (component.props?.id === componentId) {
-        if (component.props?.content && Array.isArray(component.props.content)) {
-          if (component.props.content.length > 0) {
-            return component.props.content
-          }
-        }
-      }
-    }
-  }
-
-  return []
-}
-
-/**
  * Find and update a component's props in the Puck data tree.
  */
 function updateComponentInData(
@@ -301,6 +270,7 @@ function TemplateFieldInner({
   const dispatch = usePuck((s) => s.dispatch)
   const selectedItem = usePuck((s) => s.selectedItem)
   const getSelectorForId = usePuck((s) => s.getSelectorForId)
+  const getItemById = usePuck((s) => s.getItemById)
 
   // Get current component ID
   const componentId = selectedItem?.props?.id as string | undefined
@@ -435,7 +405,9 @@ function TemplateFieldInner({
     setSaveForm((prev) => ({ ...prev, saving: true, error: null }))
 
     try {
-      const content = getSlotContent(appState.data, componentId, selectedItem)
+      // Use Puck's official getItemById API instead of manual tree traversal
+      const component = getItemById(componentId)
+      const content = (component?.props?.content as unknown[]) || []
 
       if (content.length === 0) {
         throw new Error('No content to save. Add components to the template first.')
@@ -487,7 +459,7 @@ function TemplateFieldInner({
         error: err instanceof Error ? err.message : 'Failed to save template',
       }))
     }
-  }, [componentId, appState.data, selectedItem, apiEndpoint, saveForm, onChange, handleCloseSaveForm])
+  }, [componentId, getItemById, apiEndpoint, saveForm, onChange, handleCloseSaveForm])
 
   // Group templates by category
   const categorizedTemplates = templates.reduce<Record<string, TemplateItem[]>>(

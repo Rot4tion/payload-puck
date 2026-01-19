@@ -15,15 +15,43 @@ const DARK_MODE_CSS = `
  * When Payload CMS is in dark mode, we need to ensure Puck's
  * form inputs remain readable (dark text on light background).
  *
- * This CSS forces light-mode text colors in Puck UI elements
- * to prevent white-on-white text when Payload is in dark mode.
+ * This CSS overrides PayloadCMS theme CSS variables within Puck UI
+ * to force light-mode values, ensuring proper contrast.
  */
 
-/* Force dark text in all Puck form inputs and UI elements */
+/* Override PayloadCMS theme CSS variables to light-mode values within Puck UI */
 .dark [class*="Puck"],
 .dark [class*="puck-"],
 [data-theme="dark"] [class*="Puck"],
 [data-theme="dark"] [class*="puck-"] {
+  /* Force light-mode PayloadCMS elevation values */
+  --theme-elevation-0: rgb(255, 255, 255);
+  --theme-elevation-50: rgb(245, 245, 245);
+  --theme-elevation-100: rgb(235, 235, 235);
+  --theme-elevation-150: rgb(221, 221, 221);
+  --theme-elevation-200: rgb(208, 208, 208);
+  --theme-elevation-250: rgb(195, 195, 195);
+  --theme-elevation-300: rgb(181, 181, 181);
+  --theme-elevation-350: rgb(168, 168, 168);
+  --theme-elevation-400: rgb(154, 154, 154);
+  --theme-elevation-450: rgb(141, 141, 141);
+  --theme-elevation-500: rgb(128, 128, 128);
+  --theme-elevation-550: rgb(114, 114, 114);
+  --theme-elevation-600: rgb(101, 101, 101);
+  --theme-elevation-650: rgb(87, 87, 87);
+  --theme-elevation-700: rgb(74, 74, 74);
+  --theme-elevation-750: rgb(60, 60, 60);
+  --theme-elevation-800: rgb(47, 47, 47);
+  --theme-elevation-850: rgb(34, 34, 34);
+  --theme-elevation-900: rgb(20, 20, 20);
+  --theme-elevation-950: rgb(7, 7, 7);
+  --theme-elevation-1000: rgb(0, 0, 0);
+
+  /* Force light-mode derived theme variables */
+  --theme-bg: rgb(255, 255, 255);
+  --theme-input-bg: rgb(255, 255, 255);
+  --theme-text: rgb(47, 47, 47);
+
   /* Reset text color inheritance from Payload's dark mode */
   color: #1f2937;
 }

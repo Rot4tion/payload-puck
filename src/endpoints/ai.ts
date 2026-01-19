@@ -121,66 +121,6 @@ export function createAiEndpointHandler(options: AiEndpointOptions = {}): Payloa
       // Get the request body
       const body = await req.json?.()
 
-      // Debug logging
-      console.log('[payload-puck] AI request body keys:', body ? Object.keys(body) : 'null')
-      console.log('[payload-puck] AI request has config:', !!body?.config)
-      console.log('[payload-puck] AI request has pageData:', !!body?.pageData)
-      console.log('[payload-puck] AI request has messages:', !!body?.messages, 'count:', body?.messages?.length)
-      if (body?.config) {
-        console.log('[payload-puck] Config keys:', Object.keys(body.config))
-        console.log('[payload-puck] Config.components:', body.config.components ? Object.keys(body.config.components).length + ' components' : 'missing')
-        // Log each component to find null/undefined values
-        if (body.config.components) {
-          for (const [name, comp] of Object.entries(body.config.components)) {
-            const c = comp as any
-            if (!c) {
-              console.log(`[payload-puck] Component ${name} is NULL/UNDEFINED`)
-            } else if (!c.fields) {
-              console.log(`[payload-puck] Component ${name} has no fields`)
-            } else {
-              // Check for null fields
-              for (const [fieldName, field] of Object.entries(c.fields)) {
-                if (!field) {
-                  console.log(`[payload-puck] Component ${name}.${fieldName} is NULL/UNDEFINED`)
-                }
-              }
-            }
-          }
-          // Log first component structure for debugging
-          const firstComp = Object.entries(body.config.components)[0]
-          if (firstComp) {
-            const comp = firstComp[1] as any
-            console.log(`[payload-puck] Sample component "${firstComp[0]}":`)
-            console.log(`  - has fields: ${!!comp.fields}`)
-            console.log(`  - has defaultProps: ${!!comp.defaultProps}`)
-            console.log(`  - has ai: ${!!comp.ai}`)
-            console.log(`  - has render: ${!!comp.render}`)
-            console.log(`  - defaultProps value:`, comp.defaultProps)
-          }
-          // Check all components for missing defaultProps
-          for (const [name, comp] of Object.entries(body.config.components)) {
-            const c = comp as any
-            if (!c.defaultProps) {
-              console.log(`[payload-puck] Component "${name}" is MISSING defaultProps`)
-            }
-          }
-        }
-        // Check root
-        console.log('[payload-puck] Config.root:', body.config.root ? 'present' : 'MISSING')
-        if (body.config.root?.fields) {
-          for (const [fieldName, field] of Object.entries(body.config.root.fields)) {
-            if (!field) {
-              console.log(`[payload-puck] Root.${fieldName} is NULL/UNDEFINED`)
-            }
-          }
-        }
-      }
-      // Check pageData structure
-      if (body?.pageData) {
-        console.log('[payload-puck] pageData.content:', body.pageData.content?.length ?? 0, 'items')
-        console.log('[payload-puck] pageData.root:', body.pageData.root ? 'present' : 'MISSING')
-      }
-
       // NOTE: We previously removed null values from defaultProps here, but this
       // was preventing the AI from knowing about optional styling fields.
       // Per Puck docs: "All fields in defaultProps are considered required by the agent"
@@ -194,7 +134,6 @@ export function createAiEndpointHandler(options: AiEndpointOptions = {}): Payloa
           const f = field as any
           // Only exclude if: is custom, doesn't have exclude set, AND doesn't have instructions
           if (f.type === 'custom' && !f.ai?.exclude && !f.ai?.instructions) {
-            console.log(`[payload-puck] Auto-excluding root custom field: ${fieldName}`)
             f.ai = { ...f.ai, exclude: true }
           }
         }
@@ -203,20 +142,13 @@ export function createAiEndpointHandler(options: AiEndpointOptions = {}): Payloa
       // Auto-exclude custom fields in components that don't have ai.exclude set
       // BUT: if field has AI instructions, don't exclude it (we want AI to use it)
       if (body?.config?.components) {
-        // Debug: Check Section fields specifically
-        const sectionComp = body.config.components['Section'] as any
-        if (sectionComp?.fields?.sectionBackground) {
-          console.log(`[payload-puck] Section.sectionBackground.ai:`, JSON.stringify(sectionComp.fields.sectionBackground.ai || 'NO AI CONFIG'))
-        }
-
-        for (const [compName, comp] of Object.entries(body.config.components)) {
+        for (const [, comp] of Object.entries(body.config.components)) {
           const c = comp as any
           if (c.fields) {
-            for (const [fieldName, field] of Object.entries(c.fields)) {
+            for (const [, field] of Object.entries(c.fields)) {
               const f = field as any
               // Only exclude if: is custom, doesn't have exclude set, AND doesn't have instructions
               if (f.type === 'custom' && !f.ai?.exclude && !f.ai?.instructions) {
-                console.log(`[payload-puck] Auto-excluding ${compName}.${fieldName} custom field`)
                 f.ai = { ...f.ai, exclude: true }
               }
             }
@@ -307,49 +239,10 @@ export function createAiEndpointHandler(options: AiEndpointOptions = {}): Payloa
         aiOptions.tools = wrappedTools
       }
 
-      console.log('[payload-puck] AI options:', {
-        hasContext: !!aiOptions.context,
-        contextLength: aiOptions.context?.length,
-        hasTools: !!aiOptions.tools,
-        toolNames: aiOptions.tools ? Object.keys(aiOptions.tools) : [],
-      })
-
       const response = await puckHandler(webRequest, {
         ai: aiOptions,
         apiKey,
       })
-
-      // Log response status for debugging
-      console.log('[payload-puck] Puck Cloud response status:', response.status)
-      console.log('[payload-puck] Response content-type:', response.headers.get('content-type'))
-
-      // For SSE responses, we can't easily read the body without consuming it
-      // But we can check if it's a streaming response
-      if (response.body) {
-        // Create a transform stream to log chunks while passing them through
-        const originalBody = response.body
-        const { readable, writable } = new TransformStream({
-          transform(chunk, controller) {
-            // Log chunks that contain actual error indicators
-            const text = new TextDecoder().decode(chunk)
-            // Only log if it looks like an actual error response (not just a word containing "error")
-            if (text.includes('"type":"error"') || text.includes('"error":') || text.includes('status":4') || text.includes('status":5')) {
-              console.log('[payload-puck] SSE chunk with error:', text.slice(0, 500))
-            }
-            controller.enqueue(chunk)
-          }
-        })
-
-        originalBody.pipeTo(writable).catch(err => {
-          console.error('[payload-puck] Stream pipe error:', err)
-        })
-
-        return new Response(readable, {
-          status: response.status,
-          statusText: response.statusText,
-          headers: response.headers,
-        })
-      }
 
       if (!response.ok) {
         // Try to get more info from error response

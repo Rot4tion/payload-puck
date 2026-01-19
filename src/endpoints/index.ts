@@ -6,6 +6,8 @@
  */
 
 import type { PayloadHandler, CollectionSlug } from 'payload'
+import { APIError } from 'payload'
+import { unsetHomepage, HomepageConflictError } from '../plugin/hooks/isHomepageUnique'
 
 export interface PuckEndpointOptions {
   collections: string[]
@@ -123,7 +125,7 @@ export function createGetHandler(options: PuckEndpointOptions): PayloadHandler {
 
 /**
  * PATCH /api/puck/:collection/:id
- * Update a document (supports draft saving and publishing)
+ * Update a document (supports draft saving, publishing, and homepage swapping)
  */
 export function createUpdateHandler(options: PuckEndpointOptions): PayloadHandler {
   const { collections } = options
@@ -141,10 +143,34 @@ export function createUpdateHandler(options: PuckEndpointOptions): PayloadHandle
       }
 
       const body = await req.json?.()
-      const { _status, ...data } = body || {}
+      const { _status, swapHomepage, ...data } = body || {}
 
       // Determine if this is a publish or draft save
       const shouldPublish = _status === 'published'
+
+      // Handle homepage swap if requested
+      // When swapHomepage is true and isHomepage is being set to true,
+      // we need to unset the current homepage first
+      if (swapHomepage && data.isHomepage === true) {
+        // Find the current homepage
+        const existingHomepage = await req.payload.find({
+          collection: collection as CollectionSlug,
+          where: {
+            and: [
+              { isHomepage: { equals: true } },
+              { id: { not_equals: id } },
+            ],
+          },
+          limit: 1,
+          depth: 0,
+        })
+
+        // Unset the existing homepage if found
+        if (existingHomepage.docs.length > 0) {
+          const existingId = String(existingHomepage.docs[0].id)
+          await unsetHomepage(req.payload, collection, existingId)
+        }
+      }
 
       const doc = await req.payload.update({
         collection: collection as CollectionSlug,
@@ -154,11 +180,36 @@ export function createUpdateHandler(options: PuckEndpointOptions): PayloadHandle
           _status: shouldPublish ? 'published' : 'draft',
         },
         draft: !shouldPublish,
+        // Skip the isHomepage hook if we've already handled the swap
+        context: swapHomepage ? { skipIsHomepageHook: true } : undefined,
       })
 
       return Response.json({ doc, published: shouldPublish })
     } catch (error) {
       console.error('[payload-puck] Update error:', error)
+
+      // Handle HomepageConflictError specially - pass through existingHomepage data
+      if (error instanceof HomepageConflictError) {
+        return Response.json(
+          {
+            error: error.message,
+            data: { existingHomepage: error.existingHomepage },
+          },
+          { status: 400 }
+        )
+      }
+
+      // Handle other APIErrors
+      if (error instanceof APIError) {
+        return Response.json(
+          {
+            error: error.message,
+            data: error.data,
+          },
+          { status: error.status || 500 }
+        )
+      }
+
       return Response.json(
         { error: error instanceof Error ? error.message : 'Update failed' },
         { status: 500 }
