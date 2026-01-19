@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.3] - 2026-01-18
+
+This release adds build-time CSS compilation for production deployments and fixes dark mode issues in Payload admin.
+
+### Added
+
+#### Build-Time CSS Compilation for Production
+
+The `editorStylesheet` runtime compilation works great in development, but fails on serverless platforms (Vercel, Netlify, etc.) because source CSS files aren't deployed. This release adds `withPuckCSS()` - a Next.js config wrapper that compiles your CSS at build time.
+
+**The problem:**
+- Runtime CSS compilation reads source files (e.g., `src/app/globals.css`) at request time
+- Serverless deployments only include compiled `.next` output, not source files
+- Result: broken editor styles in production
+
+**The solution:**
+```javascript
+// next.config.js
+import { withPuckCSS } from '@delmaredigital/payload-puck/next'
+import { withPayload } from '@payloadcms/next/withPayload'
+
+export default withPuckCSS({
+  cssInput: 'src/app/(frontend)/globals.css',
+})(withPayload(nextConfig))
+```
+
+```typescript
+// payload.config.ts
+createPuckPlugin({
+  editorStylesheet: 'src/app/(frontend)/globals.css',      // For dev (runtime)
+  editorStylesheetCompiled: '/puck-editor-styles.css',     // For prod (static)
+})
+```
+
+**How it works:**
+1. During `next build`, the wrapper compiles your CSS to `public/puck-editor-styles.css`
+2. In production, the plugin serves the static file instead of runtime compilation
+3. In development, runtime compilation continues working for hot reload
+
+**New exports:**
+```typescript
+import { withPuckCSS, getPuckCSSPath } from '@delmaredigital/payload-puck/next'
+```
+
+**New plugin options:**
+- `editorStylesheetCompiled` - Path to pre-compiled CSS file for production (e.g., `/puck-editor-styles.css`)
+
+### Fixed
+
+#### Dark Mode Form Input Visibility
+
+Fixed white-on-white text in Puck form inputs when Payload CMS is in dark mode. Puck's UI is always light-themed, but when nested inside Payload's dark mode admin, form inputs were inheriting white text color. The DarkModeStyles component now explicitly forces dark text in all Puck UI elements.
+
+#### Editor Stylesheet Loading
+
+Fixed editor iframe stylesheets not applying immediately on load. The compiled CSS (from `editorStylesheet` or `editorStylesheetCompiled`) now properly triggers a re-render when loaded, ensuring Tailwind classes and CSS variables are applied without requiring a dark mode toggle.
+
+---
+
 ## [0.6.2] - 2026-01-17
 
 This release adds dark mode support for the Puck editor and includes several bug fixes.

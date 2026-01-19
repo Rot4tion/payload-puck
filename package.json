@@ -1,6 +1,6 @@
 {
   "name": "@delmaredigital/payload-puck",
-  "version": "0.6.2",
+  "version": "0.6.3-dev.3",
   "description": "Puck visual page builder plugin for Payload CMS",
   "type": "module",
   "license": "MIT",
@@ -66,6 +66,10 @@
     "./ai": {
       "import": "./dist/ai/index.js",
       "types": "./dist/ai/index.d.ts"
+    },
+    "./next": {
+      "import": "./dist/next/index.js",
+      "types": "./dist/next/index.d.ts"
     }
   },
   "files": [

@@ -435,8 +435,13 @@ export const IframeWrapper = memo(function IframeWrapper({
       ? {}
       : { pointerEvents: 'none' }
 
+    // Use key to force re-render when styles finish loading
+    // This ensures Tailwind classes are applied after the stylesheet loads
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <div
+        key={stylesLoaded ? 'styles-loaded' : 'styles-loading'}
+        style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
+      >
         {shouldShowHeader && LayoutHeader && (
           <div style={headerFooterStyle}>
             <LayoutHeader />
@@ -452,5 +457,10 @@ export const IframeWrapper = memo(function IframeWrapper({
     )
   }
 
-  return <>{children}</>
+  // Use key to force re-render when styles finish loading
+  return (
+    <div key={stylesLoaded ? 'styles-loaded' : 'styles-loading'}>
+      {children}
+    </div>
+  )
 })

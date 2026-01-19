@@ -10,97 +10,95 @@ import { useDarkMode } from '../hooks/useDarkMode'
 const DARK_MODE_CSS = `
 /**
  * Puck Editor Dark Mode CSS Overrides
- * Automatically injected when dark mode is detected
+ *
+ * Puck's UI is always light-themed (no built-in dark mode).
+ * When Payload CMS is in dark mode, we need to ensure Puck's
+ * form inputs remain readable (dark text on light background).
+ *
+ * This CSS forces light-mode text colors in Puck UI elements
+ * to prevent white-on-white text when Payload is in dark mode.
  */
 
-.dark {
-  /* Invert grey scale for dark mode */
-  --puck-color-grey-01: #fafafa;
-  --puck-color-grey-02: #f5f5f5;
-  --puck-color-grey-03: #efefef;
-  --puck-color-grey-04: #e8e8e8;
-  --puck-color-grey-05: #d4d4d4;
-  --puck-color-grey-06: #b3b3b3;
-  --puck-color-grey-07: #8f8f8f;
-  --puck-color-grey-08: #6b6b6b;
-  --puck-color-grey-09: #525252;
-  --puck-color-grey-10: #3d3d3d;
-  --puck-color-grey-11: #272727;
-  --puck-color-grey-12: #181818;
+/* Force dark text in all Puck form inputs and UI elements */
+.dark [class*="Puck"],
+.dark [class*="puck-"],
+[data-theme="dark"] [class*="Puck"],
+[data-theme="dark"] [class*="puck-"] {
+  /* Reset text color inheritance from Payload's dark mode */
+  color: #1f2937;
+}
 
-  /* Swap white/black */
-  --puck-color-white: #1a1a1a;
-  --puck-color-black: #ffffff;
+/* Ensure form inputs have dark text */
+.dark [class*="Puck"] input,
+.dark [class*="Puck"] textarea,
+.dark [class*="Puck"] select,
+.dark [class*="puck-"] input,
+.dark [class*="puck-"] textarea,
+.dark [class*="puck-"] select,
+[data-theme="dark"] [class*="Puck"] input,
+[data-theme="dark"] [class*="Puck"] textarea,
+[data-theme="dark"] [class*="Puck"] select,
+[data-theme="dark"] [class*="puck-"] input,
+[data-theme="dark"] [class*="puck-"] textarea,
+[data-theme="dark"] [class*="puck-"] select {
+  color: #1f2937 !important;
+  background-color: #ffffff !important;
+}
 
-  /* Azure (primary blue) */
-  --puck-color-azure-01: #e0f2ff;
-  --puck-color-azure-02: #c4e5ff;
-  --puck-color-azure-03: #99d4ff;
-  --puck-color-azure-04: #66c2ff;
-  --puck-color-azure-05: #33b0ff;
-  --puck-color-azure-06: #009dff;
-  --puck-color-azure-07: #0080d9;
-  --puck-color-azure-08: #0066b3;
-  --puck-color-azure-09: #004d8c;
-  --puck-color-azure-10: #003366;
-  --puck-color-azure-11: #001a40;
-  --puck-color-azure-12: #00101a;
+/* Ensure labels and text in Puck panels are dark */
+.dark [class*="Puck"] label,
+.dark [class*="Puck"] span,
+.dark [class*="Puck"] p,
+.dark [class*="puck-"] label,
+.dark [class*="puck-"] span,
+.dark [class*="puck-"] p,
+[data-theme="dark"] [class*="Puck"] label,
+[data-theme="dark"] [class*="Puck"] span,
+[data-theme="dark"] [class*="Puck"] p,
+[data-theme="dark"] [class*="puck-"] label,
+[data-theme="dark"] [class*="puck-"] span,
+[data-theme="dark"] [class*="puck-"] p {
+  color: #1f2937;
+}
 
-  /* Rose (pink/red accents) */
-  --puck-color-rose-01: #ffe0f0;
-  --puck-color-rose-02: #ffc4e3;
-  --puck-color-rose-03: #ff99cf;
-  --puck-color-rose-04: #ff66b8;
-  --puck-color-rose-05: #ff33a1;
-  --puck-color-rose-06: #ff008a;
-  --puck-color-rose-07: #d90075;
-  --puck-color-rose-08: #b30061;
-  --puck-color-rose-09: #8c004d;
-  --puck-color-rose-10: #660038;
-  --puck-color-rose-11: #400024;
-  --puck-color-rose-12: #1a000f;
+/* Ensure buttons maintain proper styling */
+.dark [class*="Puck"] button,
+.dark [class*="puck-"] button,
+[data-theme="dark"] [class*="Puck"] button,
+[data-theme="dark"] [class*="puck-"] button {
+  color: inherit;
+}
 
-  /* Green (success states) */
-  --puck-color-green-01: #e0ffe0;
-  --puck-color-green-02: #c4ffc4;
-  --puck-color-green-03: #99ff99;
-  --puck-color-green-04: #66ff66;
-  --puck-color-green-05: #33ff33;
-  --puck-color-green-06: #00e600;
-  --puck-color-green-07: #00c400;
-  --puck-color-green-08: #00a300;
-  --puck-color-green-09: #008200;
-  --puck-color-green-10: #006100;
-  --puck-color-green-11: #004000;
-  --puck-color-green-12: #001a00;
+/* Fix placeholder text */
+.dark [class*="Puck"] input::placeholder,
+.dark [class*="Puck"] textarea::placeholder,
+.dark [class*="puck-"] input::placeholder,
+.dark [class*="puck-"] textarea::placeholder,
+[data-theme="dark"] [class*="Puck"] input::placeholder,
+[data-theme="dark"] [class*="Puck"] textarea::placeholder,
+[data-theme="dark"] [class*="puck-"] input::placeholder,
+[data-theme="dark"] [class*="puck-"] textarea::placeholder {
+  color: #9ca3af !important;
+}
 
-  /* Yellow (warning states) */
-  --puck-color-yellow-01: #fffde0;
-  --puck-color-yellow-02: #fffbc4;
-  --puck-color-yellow-03: #fff899;
-  --puck-color-yellow-04: #fff566;
-  --puck-color-yellow-05: #fff233;
-  --puck-color-yellow-06: #e6d900;
-  --puck-color-yellow-07: #c4b800;
-  --puck-color-yellow-08: #a39800;
-  --puck-color-yellow-09: #827800;
-  --puck-color-yellow-10: #615800;
-  --puck-color-yellow-11: #403900;
-  --puck-color-yellow-12: #1a1700;
-
-  /* Red (error states) */
-  --puck-color-red-01: #ffe0e0;
-  --puck-color-red-02: #ffc4c4;
-  --puck-color-red-03: #ff9999;
-  --puck-color-red-04: #ff6666;
-  --puck-color-red-05: #ff3333;
-  --puck-color-red-06: #e60000;
-  --puck-color-red-07: #c40000;
-  --puck-color-red-08: #a30000;
-  --puck-color-red-09: #820000;
-  --puck-color-red-10: #610000;
-  --puck-color-red-11: #400000;
-  --puck-color-red-12: #1a0000;
+/* Ensure headings in Puck are visible */
+.dark [class*="Puck"] h1,
+.dark [class*="Puck"] h2,
+.dark [class*="Puck"] h3,
+.dark [class*="Puck"] h4,
+.dark [class*="puck-"] h1,
+.dark [class*="puck-"] h2,
+.dark [class*="puck-"] h3,
+.dark [class*="puck-"] h4,
+[data-theme="dark"] [class*="Puck"] h1,
+[data-theme="dark"] [class*="Puck"] h2,
+[data-theme="dark"] [class*="Puck"] h3,
+[data-theme="dark"] [class*="Puck"] h4,
+[data-theme="dark"] [class*="puck-"] h1,
+[data-theme="dark"] [class*="puck-"] h2,
+[data-theme="dark"] [class*="puck-"] h3,
+[data-theme="dark"] [class*="puck-"] h4 {
+  color: #1f2937;
 }
 `.trim()
 

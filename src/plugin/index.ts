@@ -151,6 +151,7 @@ export function createPuckPlugin(options: PuckPluginOptions = {}): Plugin {
     pageTreeIntegration, // No default - undefined means auto-detect
     editorStylesheet,
     editorStylesheetUrls = [],
+    editorStylesheetCompiled,
     ai: aiConfig,
   } = options
 
@@ -306,8 +307,17 @@ export function createPuckPlugin(options: PuckPluginOptions = {}): Plugin {
     const endpointOptions = { collections: puckCollections }
 
     // Build styles endpoint URL list for PuckConfigProvider
+    // In production, prefer the pre-compiled static CSS file if provided
+    // In development, use runtime compilation endpoint for hot reload
+    const isProduction = process.env.NODE_ENV === 'production'
+    const useCompiledCss = isProduction && editorStylesheetCompiled
+
     const editorStylesheets: string[] = [
-      ...(editorStylesheet ? [PUCK_STYLES_ENDPOINT] : []),
+      ...(useCompiledCss
+        ? [editorStylesheetCompiled]
+        : editorStylesheet
+          ? [PUCK_STYLES_ENDPOINT]
+          : []),
       ...editorStylesheetUrls,
     ]
 

@@ -169,6 +169,28 @@ export interface PuckPluginOptions {
   editorStylesheetUrls?: string[]
 
   /**
+   * Path to pre-compiled CSS file for production use.
+   * When set, the editor will load this static file instead of using the runtime compilation endpoint.
+   * Use with `withPuckCSS()` from `@delmaredigital/payload-puck/next` to compile CSS at build time.
+   *
+   * @example '/puck-editor-styles.css'
+   *
+   * @example
+   * ```typescript
+   * // next.config.js
+   * import { withPuckCSS } from '@delmaredigital/payload-puck/next'
+   * export default withPuckCSS({ cssInput: 'src/globals.css' })(nextConfig)
+   *
+   * // payload.config.ts
+   * createPuckPlugin({
+   *   editorStylesheet: 'src/globals.css', // For dev (runtime compilation)
+   *   editorStylesheetCompiled: '/puck-editor-styles.css', // For prod (static file)
+   * })
+   * ```
+   */
+  editorStylesheetCompiled?: string
+
+  /**
    * AI configuration for the plugin.
    * Enables AI-powered page generation in the editor.
    *

@@ -1229,6 +1229,7 @@ import {
 | `pageTreeIntegration` | auto-detect | Integration with `@delmaredigital/payload-page-tree` |
 | `layouts` | `undefined` | Layout definitions for page templates |
 | `editorStylesheet` | `undefined` | Path to CSS file for editor iframe styling (e.g., `'src/app/globals.css'`) |
+| `editorStylesheetCompiled` | `undefined` | Path to pre-compiled CSS for production (e.g., `'/puck-editor-styles.css'`) |
 | `editorStylesheetUrls` | `[]` | Additional stylesheet URLs for the editor (e.g., Google Fonts) |
 
 ```typescript
@@ -1261,45 +1262,77 @@ createPuckPlugin({
 
 The Puck editor renders page content in an iframe. By default, this iframe doesn't have access to your frontend's CSS (Tailwind utilities, CSS variables, fonts). The `editorStylesheet` option solves this by compiling and serving your CSS.
 
-**How it works:**
-1. You specify your CSS file path in the plugin config
-2. The plugin creates an endpoint at `/api/puck/styles`
-3. On first request, the CSS is compiled with PostCSS/Tailwind and cached
-4. The iframe loads this compiled CSS
+#### Development (Runtime Compilation)
+
+In development, CSS is compiled at runtime for hot reload support:
 
 ```typescript
 createPuckPlugin({
   pagesCollection: 'pages',
-  // Your frontend's main CSS file
   editorStylesheet: 'src/app/(frontend)/globals.css',
-  // External stylesheets (Google Fonts, etc.)
   editorStylesheetUrls: [
     'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
   ],
 })
 ```
 
-Then update your `PuckConfigProvider` to use the compiled stylesheet:
+**How it works:**
+1. You specify your CSS file path in the plugin config
+2. The plugin creates an endpoint at `/api/puck/styles`
+3. On first request, the CSS is compiled with PostCSS/Tailwind and cached
+4. The iframe loads this compiled CSS
 
-```typescript
-<PuckConfigProvider
-  config={editorConfig}
-  layouts={siteLayouts}
-  editorStylesheets={[
-    '/api/puck/styles',  // Plugin-created endpoint
-    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
-  ]}
->
-  {children}
-</PuckConfigProvider>
+#### Production (Build-Time Compilation)
+
+Runtime compilation fails on serverless platforms (Vercel, Netlify, etc.) because source CSS files aren't deployed—only compiled `.next` output is included. Use `withPuckCSS()` to compile CSS at build time:
+
+**Step 1: Wrap your Next.js config**
+
+```javascript
+// next.config.js
+import { withPuckCSS } from '@delmaredigital/payload-puck/next'
+import { withPayload } from '@payloadcms/next/withPayload'
+
+const nextConfig = {
+  // your config...
+}
+
+export default withPuckCSS({
+  cssInput: 'src/app/(frontend)/globals.css',
+})(withPayload(nextConfig))
 ```
 
-**Requirements:**
+**Step 2: Add the compiled path to your plugin config**
+
+```typescript
+createPuckPlugin({
+  pagesCollection: 'pages',
+  editorStylesheet: 'src/app/(frontend)/globals.css',      // For dev (runtime)
+  editorStylesheetCompiled: '/puck-editor-styles.css',     // For prod (static)
+  editorStylesheetUrls: [
+    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+  ],
+})
+```
+
+**How it works:**
+1. During `next build`, the wrapper compiles your CSS to `public/puck-editor-styles.css`
+2. In production (`NODE_ENV=production`), the plugin serves the static file
+3. In development, runtime compilation continues working for hot reload
+
+**`withPuckCSS` options:**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `cssInput` | (required) | Path to source CSS file |
+| `cssOutput` | `'puck-editor-styles.css'` | Output filename in `public/` |
+| `skipInDev` | `true` | Skip compilation in development |
+
+#### Requirements
+
 - `postcss` must be installed in your project
 - For Tailwind v4: `@tailwindcss/postcss`
 - For Tailwind v3: `tailwindcss`
-
-The CSS is compiled at runtime (cached after first request) using your project's PostCSS/Tailwind installation.
 
 ---
 
@@ -1337,6 +1370,7 @@ See the JSDoc in `@delmaredigital/payload-puck/api` for usage examples.
 | `@delmaredigital/payload-puck/layouts` | Layout definitions, `LayoutWrapper` |
 | `@delmaredigital/payload-puck/api` | API route factories (for custom implementations) |
 | `@delmaredigital/payload-puck/ai` | AI plugins, hooks, config utilities, API routes |
+| `@delmaredigital/payload-puck/next` | `withPuckCSS` Next.js config wrapper for build-time CSS |
 | `@delmaredigital/payload-puck/admin/client` | `EditWithPuckButton`, `EditWithPuckCell` |
 
 ---
