@@ -1,7 +1,32 @@
 'use client'
 
-import { useState, useCallback, memo, useEffect, type MouseEvent, type CSSProperties } from 'react'
+import { useState, useCallback, memo, useEffect, useMemo, type MouseEvent, type CSSProperties } from 'react'
 import type { Data as PuckData, Config as PuckConfig } from '@puckeditor/core'
+
+/**
+ * Editor-only props that should be stripped from data before preview rendering.
+ * These props are used for editor/panel synchronization and shouldn't affect
+ * how content renders in the preview.
+ */
+const EDITOR_ONLY_PROPS = ['editorPreviewFilter'] as const
+
+/**
+ * Removes editor-only props from Puck data content items.
+ * This ensures the preview renders as it would on the frontend,
+ * without editor-specific state interfering.
+ */
+function stripEditorOnlyProps(data: PuckData): PuckData {
+  return {
+    ...data,
+    content: data.content.map((item) => {
+      const cleanedProps = { ...item.props }
+      for (const prop of EDITOR_ONLY_PROPS) {
+        delete cleanedProps[prop]
+      }
+      return { ...item, props: cleanedProps }
+    }),
+  }
+}
 import {
   X,
   ExternalLink,
@@ -288,6 +313,11 @@ export const PreviewModal = memo(function PreviewModal({
   editorCss,
   config,
 }: PreviewModalProps) {
+  // Strip editor-only props from data to ensure preview renders like frontend
+  const cleanedData = useMemo(() => {
+    return data ? stripEditorOnlyProps(data) : null
+  }, [data])
+
   // Navigation confirmation state
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
   const [isNavigating, setIsNavigating] = useState(false)
@@ -450,8 +480,8 @@ export const PreviewModal = memo(function PreviewModal({
         style={styles.content}
         onClickCapture={handleContentClick}
       >
-        {data ? (
-          <PageRenderer data={data} layouts={layouts} config={config} />
+        {cleanedData ? (
+          <PageRenderer data={cleanedData} layouts={layouts} config={config} />
         ) : (
           <div style={styles.emptyState}>
             No content to preview

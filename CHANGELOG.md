@@ -17,6 +17,12 @@ Fixed a bug where the full-screen preview modal (opened via the "Preview" button
 
 **The fix:** Added `config` prop to `PreviewModal` and passed it through from `PuckEditorImpl` to `PageRenderer`.
 
+#### Preview Modal Now Strips Editor-Only Props
+
+Fixed an issue where editor-only props (like `editorPreviewFilter` used for panel sync) would persist in component data and affect how the preview rendered, causing interactive features like gallery filter tabs to not respond to user clicks.
+
+**The fix:** `PreviewModal` now strips known editor-only props from the data before passing it to `PageRenderer`, ensuring the preview renders as it would on the actual frontend.
+
 ### Added
 
 #### Preview Theme Context for Reactive Dark Mode Detection
