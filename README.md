@@ -904,6 +904,43 @@ function CustomEditor() {
 }
 ```
 
+### Detecting Theme in Puck Components
+
+If your Puck components need to dynamically adjust JavaScript-controlled styles based on the preview theme (not just CSS), use the `usePuckPreviewTheme()` hook:
+
+```typescript
+import { usePuckPreviewTheme } from '@delmaredigital/payload-puck/editor'
+import { useEffect, useState } from 'react'
+
+function useDetectTheme() {
+  const puckTheme = usePuckPreviewTheme()
+
+  // For frontend (non-editor), read from DOM
+  const [domTheme, setDomTheme] = useState(() =>
+    typeof document !== 'undefined'
+      ? document.documentElement.getAttribute('data-theme') === 'dark'
+      : false
+  )
+
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.attributeName === 'data-theme') {
+          setDomTheme(document.documentElement.getAttribute('data-theme') === 'dark')
+        }
+      }
+    })
+    observer.observe(document.documentElement, { attributes: true })
+    return () => observer.disconnect()
+  }, [])
+
+  // In editor: use context. On frontend: use DOM.
+  return puckTheme !== null ? puckTheme : domTheme
+}
+```
+
+**Why this is needed:** CSS dark mode variants (like Tailwind's `dark:` classes) work automatically via the `data-theme` attribute. However, if you need to conditionally render different JavaScript values (like overlay colors), those won't update reactively when the preview toggle changes. The context provides reactive updates.
+
 ---
 
 ## Page-Tree Integration

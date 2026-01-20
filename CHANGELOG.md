@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+#### Preview Theme Context for Reactive Dark Mode Detection
+
+Added `PuckPreviewThemeContext` and `usePuckPreviewTheme()` hook to allow Puck components to reactively respond to the preview dark mode toggle without polling or MutationObserver hacks.
+
+**The problem:** When users toggle dark mode in the Puck editor preview, CSS dark mode variants work correctly (via `data-theme` attribute), but JavaScript-based theme detection would fail due to race conditions with component remounting.
+
+**The solution:** IframeWrapper now provides a React Context with the current dark mode state, which components can consume directly.
+
+```typescript
+import { usePuckPreviewTheme, PuckPreviewThemeContext } from '@delmaredigital/payload-puck/editor'
+
+function MyComponent() {
+  const previewTheme = usePuckPreviewTheme()
+
+  // previewTheme is:
+  // - null: not in editor (use DOM-based detection)
+  // - boolean: in editor, indicates dark mode state
+
+  const isDark = previewTheme !== null
+    ? previewTheme
+    : document.documentElement.getAttribute('data-theme') === 'dark'
+
+  // Now render based on isDark...
+}
+```
+
+This is particularly useful for components that need to dynamically change JavaScript-controlled styles (like overlay colors) based on the preview theme.
+
 ## [0.6.4] - 2026-01-19
 
 This release adds homepage swap functionality and fixes several issues with rich text editing, hook merging, and editor iframe styling.
