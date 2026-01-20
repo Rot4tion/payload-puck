@@ -861,6 +861,7 @@ export function PuckEditorImpl({
         isSaving={isSaving}
         editorStylesheets={mergedEditorStylesheets}
         editorCss={mergedEditorCss}
+        config={config}
       />
     </>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, memo, useEffect, type MouseEvent, type CSSProperties } from 'react'
-import type { Data as PuckData } from '@puckeditor/core'
+import type { Data as PuckData, Config as PuckConfig } from '@puckeditor/core'
 import {
   X,
   ExternalLink,
@@ -55,6 +55,11 @@ export interface PreviewModalProps {
    * Raw CSS to inject into the preview
    */
   editorCss?: string
+  /**
+   * Puck configuration with components for rendering.
+   * Required for custom components to render correctly in the preview.
+   */
+  config?: PuckConfig
 }
 
 // Styles
@@ -281,6 +286,7 @@ export const PreviewModal = memo(function PreviewModal({
   isSaving = false,
   editorStylesheets,
   editorCss,
+  config,
 }: PreviewModalProps) {
   // Navigation confirmation state
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
@@ -445,7 +451,7 @@ export const PreviewModal = memo(function PreviewModal({
         onClickCapture={handleContentClick}
       >
         {data ? (
-          <PageRenderer data={data} layouts={layouts} />
+          <PageRenderer data={data} layouts={layouts} config={config} />
         ) : (
           <div style={styles.emptyState}>
             No content to preview

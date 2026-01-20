@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+#### Preview Modal Not Rendering Custom Components
+
+Fixed a bug where the full-screen preview modal (opened via the "Preview" button) would show only the header/footer but no page content.
+
+**Root cause:** The `PreviewModal` component was not passing the Puck `config` to `PageRenderer`, causing it to fall back to `baseConfig` which doesn't include custom components.
+
+**The fix:** Added `config` prop to `PreviewModal` and passed it through from `PuckEditorImpl` to `PageRenderer`.
+
 ### Added
 
 #### Preview Theme Context for Reactive Dark Mode Detection
