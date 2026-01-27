@@ -24,6 +24,7 @@ A PayloadCMS plugin for integrating [Puck](https://puckeditor.com) visual page b
 - [Page-Tree Integration](#page-tree-integration)
 - [Hybrid Integration](#hybrid-integration)
 - [AI Integration](#ai-integration)
+- [Plugin Order](#plugin-order)
 - [Advanced Configuration](#advanced-configuration)
 - [License](#license)
 
@@ -963,6 +964,8 @@ function useDetectTheme() {
 
 When `@delmaredigital/payload-page-tree` is detected, the plugin automatically adds folder management to the Puck sidebar.
 
+> **⚠️ Plugin Order:** When using both plugins with `autoGenerateCollection: true`, Puck must run BEFORE page-tree. See [Plugin Order](#plugin-order).
+
 ### How It Works
 
 The plugin checks if your collection has a `pageSegment` field (page-tree's signature). When detected:
@@ -1310,6 +1313,48 @@ import {
 
 ---
 
+## Plugin Order
+
+When using `autoGenerateCollection: true` (the default) with `@delmaredigital/payload-page-tree`, **plugin order matters**.
+
+### The Issue
+
+The page-tree plugin validates configured collections when it initializes. If Puck hasn't created the collection yet, page-tree won't see it and will skip adding its fields (folder relationships, slug generation, etc.).
+
+### Correct Order
+
+```typescript
+// ✅ CORRECT: Puck creates the collection before page-tree runs
+export const plugins = [
+  createPuckPlugin({ pagesCollection: 'pages' }),  // Creates Pages first
+  pageTreePlugin({ collections: ['pages'] }),      // Now sees Pages
+]
+
+// ❌ WRONG: page-tree runs before Pages exists
+export const plugins = [
+  pageTreePlugin({ collections: ['pages'] }),      // Pages doesn't exist!
+  createPuckPlugin({ pagesCollection: 'pages' }),  // Creates Pages too late
+]
+```
+
+### When Order Doesn't Matter
+
+If you define your collection manually (with `autoGenerateCollection: false`), order doesn't matter because the collection already exists in your config:
+
+```typescript
+export default buildConfig({
+  collections: [Pages],  // Collection exists before plugins run
+  plugins: [
+    pageTreePlugin({ collections: ['pages'] }),
+    createPuckPlugin({ pagesCollection: 'pages', autoGenerateCollection: false }),
+  ],
+})
+```
+
+See also: [payload-page-tree Plugin Order documentation](https://github.com/delmaredigital/payload-page-tree#plugin-order-critical)
+
+---
+
 ## Advanced Configuration
 
 ### Plugin Options
@@ -1317,7 +1362,7 @@ import {
 | Option | Default | Description |
 |--------|---------|-------------|
 | `pagesCollection` | `'pages'` | Collection slug to use for pages |
-| `autoGenerateCollection` | `true` | Create the collection if it doesn't exist, or add Puck fields to existing |
+| `autoGenerateCollection` | `true` | Create the collection if it doesn't exist, or add Puck fields to existing (see [Plugin Order](#plugin-order)) |
 | `enableEndpoints` | `true` | Register API endpoints at `/api/puck/:collection` for the editor |
 | `enableAdminView` | `true` | Register the Puck editor view in Payload admin |
 | `adminViewPath` | `'/puck-editor'` | Path for the editor (full path: `/admin/puck-editor/:collection/:id`) |
